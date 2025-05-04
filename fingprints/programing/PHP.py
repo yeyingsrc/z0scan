@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 
 from re import search, I, compile, error
-from lib.core.enums import WEB_PLATFORM
 
 def _prepare_pattern(pattern):
     """
@@ -26,5 +25,5 @@ def fingerprint(headers, content):
     if 'x-powered-by' in headers.keys():
         _ = search(r"php/?([\d.]+)?\;version:\1", headers["x-powered-by"], I)
 
-    if _: return WEB_PLATFORM.PHP, None
+    if _: return "PHP", None
     return None, None

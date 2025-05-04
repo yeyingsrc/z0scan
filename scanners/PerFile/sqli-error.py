@@ -3,18 +3,18 @@
 # w8ay 2020/5/10
 # JiuZero 2025/3/13
 
-from data.rule.SQLiErrors import rules
+from data.rule.sqli_error import rules
 from api import generateResponse, random_num, random_str, VulType, Type, PluginBase, conf, logger
 from lib.helper.helper_sensitive import sensitive_page_error_message_check
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
 
 class Z0SCAN(PluginBase):
-    name = "SQLiError"
+    name = "sqli-error"
     desc = 'SQL Error Finder'
 
     def condition(self):
-        if not self.response.waf and 1 in conf.level:
+        if not self.response.waf:
             return True
         return False
         
@@ -32,6 +32,9 @@ class Z0SCAN(PluginBase):
                 r"%25%27", 
                 r"%60", 
                 r"%5C",
+            ]
+            if conf.level == 3: 
+                _payloads += [
                 ## 强制报错
                 # MySQL
                 r'\' AND 0xG1#',
@@ -43,7 +46,7 @@ class Z0SCAN(PluginBase):
                 r"' UNION SELECT XMLType('<invalid><xml>') FROM dual -- ",  
                 # SQLite
                 r"' UNION SELECT SUBSTR('o', -1, 1) -- ",
-            ]
+                ]
     
             iterdatas = self.generateItemdatas()
             with ThreadPoolExecutor(max_workers=None) as executor:
@@ -55,11 +58,11 @@ class Z0SCAN(PluginBase):
                         try:
                             future.result()
                         except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin="SQLiError")
+                            logger.error(f"Task failed: {task_e}", origin=self.name)
                 except KeyboardInterrupt:
                     executor.shutdown(wait=False)
                 except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin="SQLiError")
+                    logger.error(f"Unexpected error: {e}", origin=self.name)
                     executor.shutdown(wait=False)
     
     def Get_sql_errors(self):
@@ -80,16 +83,16 @@ class Z0SCAN(PluginBase):
             for sql_regex, dbms_type in self.Get_sql_errors():
                 match = sql_regex.search(html)
                 if match:
-                    result = self.new_result()
-                    result.init_info(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload, msg="DBMS_TYPE Maybe {}; Match {}".format(dbms_type, match.group()))
-                    result.add_detail("Request", r.reqinfo, generateResponse(r), "Dbms Maybe {}; Match {}".format(dbms_type, match.group()))
+                    result = self.generate_result()
+                    result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload, msg="DBMS_TYPE Maybe {}; Match {}".format(dbms_type, match.group()))
+                    result.step("Request", r.reqinfo, generateResponse(r), "Dbms Maybe {}; Match {}".format(dbms_type, match.group()))
                     self.success(result)
                     return True
             message_lists = sensitive_page_error_message_check(html)
             if message_lists:
-                result = self.new_result()
-                result.init_info(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload, msg="Receive The Error Msg {}".format(repr(message_lists)))
-                result.add_detail("Request", r.reqinfo, generateResponse(r), "Receive Error Msg {}".format(repr(message_lists)))
+                result = self.generate_result()
+                result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload, msg="Receive The Error Msg {}".format(repr(message_lists)))
+                result.step("Request", r.reqinfo, generateResponse(r), "Receive Error Msg {}".format(repr(message_lists)))
                 self.success(result)
                 break
     

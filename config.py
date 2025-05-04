@@ -5,11 +5,10 @@
 # 总配置
 
 THREAD_NUM = 31  # 默认线程数量
-SHOW_STATE = False # 显示扫描状态 (关闭它是为了避免影响插件的结果显示)
 EXCLUDES = ["google", '.gov.', 'baidu', 'firefox', 'microsoft.com', '.bing.', 'msn.cn']  # 排除包含关键字的网址
 RETRY = 2  # 超时重试次数
 TIMEOUT = 6  # 超时时间
-LEVEL = [0,1,2,3] # 0: 被动分析插件, 1: SQL注入等常见漏洞, 2: 目录枚举, 3: 中间件漏洞, 4: 命令执行等非常见漏洞
+LEVEL = 2 # 0:纯被动分析模式，不做额外请求 | 1:最低请求量的扫描，最低的业务影响 | 2:中等请求量的扫描，Payload多为通用Top3 | 3:大量请求扫描，Payload覆盖面更广
 SKIP_WAF_RECHECK = True # 是否跳过曾经检测到WAF但在本次启动后的扫描中未检测的站点的WAF检测
 
 # 下游代理配置

@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from api import generateResponse, VulType, PLACE, Type, PluginBase, conf, logger
 
 class Z0SCAN(PluginBase):
-    name = "Redirect"
+    name = "redirect"
     desc = 'Open Redirect'
     
     def __init__(self):
@@ -23,9 +23,7 @@ class Z0SCAN(PluginBase):
         }
 
     def condition(self):
-        if 4 in conf.level:
-            return True
-        return False
+        return True
     
     def _detect_redirect_type(self, response):
         # 30x 头检测
@@ -80,11 +78,11 @@ class Z0SCAN(PluginBase):
                         try:
                             future.result()
                         except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin="Redirect")
+                            logger.error(f"Task failed: {task_e}", origin=self.name)
                 except KeyboardInterrupt:
                     executor.shutdown(wait=False)
                 except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin="Redirect")
+                    logger.error(f"Unexpected error: {e}", origin=self.name)
                     executor.shutdown(wait=False)
     
     def process(self, _):
@@ -98,8 +96,8 @@ class Z0SCAN(PluginBase):
         vuln_type, evidence = self._detect_redirect_type(r)
         if not vuln_type:
             return
-        result = self.new_result()
-        result.init_info(
+        result = self.generate_result()
+        result.main(
             Type.REQUEST,
             self.requests.hostname,
             self.requests.url,
@@ -109,7 +107,7 @@ class Z0SCAN(PluginBase):
             param=k,
             payload=payload
         )
-        result.add_detail(
+        result.step(
             "Request",
             self._build_request_info(k, payload),
             generateResponse(r),

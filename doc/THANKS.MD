@@ -10,7 +10,7 @@
     - [http-waf-detect.nse](http://seclists.org/nmap-dev/2011/q2/att-1005/http-waf-detect.nse)
     
 ### IIS短文件名判断
-    - [IIS_shortname_Scanner](https://github.com/lijiejie/IIS_shortname_Scanner)
+- [IIS_shortname_Scanner](https://github.com/lijiejie/IIS_shortname_Scanner)
     
 ### Nginx服务漏洞
 - [nginxpwner](https://github.com/stark0de/nginxpwner)
@@ -30,7 +30,7 @@
     - [sweetPotato](https://github.com/z2p/sweetPotato)
 - [HaE入门到精通：三条影响你一生的HaE规则](https://xz.aliyun.com/spa/#/news/13091)
 
-### sqli-bool
+### SQL盲注判断
 - [SQLMAP](https://github.com/sqlmapproject/sqlmap)
 
 ### 数据库报错匹配正则

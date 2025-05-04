@@ -39,23 +39,6 @@ class POST_HINT(object):
     XML = "XML (generic)"
     ARRAY_LIKE = "Array-like"
 
-# 语言指纹
-class WEB_PLATFORM(object):
-    PHP = "PHP"
-    ASP = "ASP"
-    ASPX = "ASPX"
-    JAVA = "JAVA"
-    PYTHON = "PYTHON"
-
-# 服务指纹
-class WEB_SERVER(object):
-    NGINX = "NGINX"
-    APACHE = "APACHE"
-    TOMCAT = "APACHE-TOMCAT"
-    IIS = "IIS"
-    TENGINE = "TENGINE"
-    OSS = "OSS"
-
 # 插件扫描方式
 class Type(object):
     ANALYZE = "ANALYZE"#被动分析发现
@@ -80,6 +63,8 @@ class VulType(object):
     CSRF = "CSRF"
     # 重定向漏洞
     REDIRECT = "REDIRECT"
+    # 弱口令
+    WEAK_PASSWORD = "WEAK_PASSWORD"
     # 回车换行注入（CRLF）
     CRLF = "CRLF"
     # 敏感信息泄露漏洞

@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 
 from re import search, I, compile, error
-from lib.core.enums import WEB_PLATFORM
 
 def _prepare_pattern(pattern):
     """
@@ -21,5 +20,5 @@ def fingerprint(headers, content):
     if 'server' in headers.keys():
         _ = search(r"(?:^|\s)Python(?:/([\d.]+))?\;version:\1", headers["server"], I)
 
-    if _: return WEB_PLATFORM.PYTHON, None
+    if _: return "PYTHON", None
     return None, None

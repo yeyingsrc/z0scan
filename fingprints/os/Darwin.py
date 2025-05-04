@@ -23,5 +23,5 @@ def fingerprint(headers, content):
     if 'x-powered-by' in headers.keys():
         _ = search(r"Darwin", headers["x-powered-by"], I)
 
-    if _: return OS.DARWIN, None
+    if _: return "DARWIN", None
     return None, None

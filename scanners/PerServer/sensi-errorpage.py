@@ -11,13 +11,11 @@ from lib.helper.helper_sensitive import sensitive_page_error_message_check
 
 
 class Z0SCAN(PluginBase):
-    name = "ErrorPage"
+    name = "sensi-errorpage"
     desc = 'Leak information in Error Page'
     
     def condition(self):
-        if 4 in conf.level:
-            return True
-        return False
+        return True
         
     def audit(self):
         if self.condition():
@@ -27,10 +25,10 @@ class Z0SCAN(PluginBase):
             r = requests.get(domain, headers=headers)
             messages = sensitive_page_error_message_check(r.text)
             if messages:
-                result = self.new_result()
-                result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL)
+                result = self.generate_result()
+                result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL)
                 for m in messages:
                     text = m["text"]
                     _type = m["type"]
-                    result.add_detail("Request", r.reqinfo, generateResponse(r), "Match 组件:{} Match 正则:{}".format(_type, text))
+                    result.step("Request", r.reqinfo, generateResponse(r), "Match tool:{} Match rule:{}".format(_type, text))
                 self.success(result)

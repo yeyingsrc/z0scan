@@ -9,11 +9,11 @@ from api import generateResponse, VulType, PLACE, Type, PluginBase, KB, conf, lo
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Z0SCAN(PluginBase):
-    name = "Xpathi"
+    name = "xpathi-error"
     desc = 'XPath Injection'
 
     def condition(self):
-        if not self.response.waf and 4 in conf.level:
+        if not self.response.waf:
             return True
         return False
     
@@ -81,31 +81,26 @@ class Z0SCAN(PluginBase):
                     try:
                         future.result()
                     except Exception as task_e:
-                        logger.error(f"Task failed: {task_e}", origin="XpathiError")
+                        logger.error(f"Task failed: {task_e}", origin=self.name)
             except KeyboardInterrupt:
                 executor.shutdown(wait=False)
             except Exception as e:
-                logger.error(f"Unexpected error: {e}", origin="XpathiError")
+                logger.error(f"Unexpected error: {e}", origin=self.name)
                 executor.shutdown(wait=False)
                 
     def process(self, _):
         k, v, position = _
         _payloads = self._dynamic_payloads()
         for _payload in _payloads:
-            payload = self.insertPayload(
-                k,
-                v,
-                position, 
-                _payload
-            )
+            payload = self.insertPayload(k, v, position, _payload)
             r = self.req(position, payload)
             if not r or r.status_code >= 500:
                 continue
             is_vuln, error_info = self._detect_errors(r.text)
             if not is_vuln:
                 continue
-            result = self.new_result()
-            result.init_info(
+            result = self.generate_result()
+            result.main(
                 Type.REQUEST,
                 self.requests.hostname,
                 self.requests.url,
@@ -115,7 +110,7 @@ class Z0SCAN(PluginBase):
                 key=k,
                 value=payload
             )
-            result.add_detail(
+            result.step(
                 "Request",
                 r.reqinfo,
                 generateResponse(r),

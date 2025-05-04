@@ -10,12 +10,12 @@ from api import KB, conf, generateResponse, VulType, PLACE, PluginBase, Type
 
 
 class Z0SCAN(PluginBase):
-    name = "RepositoryLeak"
+    name = "sensi-repository"
     desc = '.git .svn .bzr .hg Finder'
 
     def condition(self):
         # Waf通常会拦截对这类敏感文件的请求
-        if not self.response.waf and 2 in conf.level:
+        if not self.response.waf:
             return True
         return False
         
@@ -33,7 +33,7 @@ class Z0SCAN(PluginBase):
                 _ = self.requests.url.rstrip('/') + f
                 r = requests.get(_, headers=headers)
                 if re.search(flag[f], r.text, re.I | re.S | re.M):
-                    result = self.new_result()
-                    result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL)
-                    result.add_detail("Request", r.reqinfo, generateResponse(r), "Match {}".format(flag[f]))
+                    result = self.generate_result()
+                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL)
+                    result.step("Request", r.reqinfo, generateResponse(r), "Match {}".format(flag[f]))
                     self.success(result)

@@ -12,14 +12,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from lib.core.log import logger
 from lib.api.dnslog import DnsLogApi
 from lib.api.reverse_api import reverseApi
-from api import generateResponse, random_str, updateJsonObjectFromStr, splitUrlPath, conf, PLACE, VulType, POST_HINT, Type, PluginBase, OS
+from api import generateResponse, random_str, updateJsonObjectFromStr, splitUrlPath, conf, PLACE, VulType, POST_HINT, Type, PluginBase
 
 class Z0SCAN(PluginBase):
-    name = "Cmdi"
+    name = "cmdi"
     desc = 'Cmd Injection'
 
     def condition(self):
-        if 3 in conf.level and not self.response.waf and self.requests.suffix in acceptedExt:
+        if not self.response.waf and self.requests.suffix in acceptedExt:
             return True
         return False
         
@@ -45,7 +45,7 @@ class Z0SCAN(PluginBase):
                 ]
             }
             for k, v in self.response.os.items():
-                if k == OS.WINDOWS:
+                if k == "WINDOWS":
                     del payloads["echo `echo {}|base64`{}".format(randint, randint)]
 
             # Dnslog
@@ -61,11 +61,11 @@ class Z0SCAN(PluginBase):
                         try:
                             future.result()
                         except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin="Cmdi")
+                            logger.error(f"Task failed: {task_e}", origin=self.name)
                 except KeyboardInterrupt:
                     executor.shutdown(wait=False)
                 except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin="Cmdi")
+                    logger.error(f"Unexpected error: {e}", origin=self.name)
                     executor.shutdown(wait=False)
                 
     def process(self, _, payloads, dns):
@@ -84,16 +84,16 @@ class Z0SCAN(PluginBase):
             for rule in rules:
                 html1 = r.text
                 if re.search(rule, html1, re.I | re.S | re.M):
-                    result = self.new_result()
-                    result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload, msg="Match rule: {}".format(rule))
-                    result.add_detail("Request", r.reqinfo, generateResponse(r), "Payload: {} Rule: {}".format(payload, rule))
+                    result = self.generate_result()
+                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload, msg="Match rule: {}".format(rule))
+                    result.step("Request", r.reqinfo, generateResponse(r), "Payload: {} Rule: {}".format(payload, rule))
                     self.success(result)
                     break
                 if dns.isUseReverse():
                     dnslist = dns.check(dns_token)
                     if dnslist:
-                        result = self.new_result()
-                        result.init_info(Type.REQUEST, self.request.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload, msg="Receive from Dnslog".format(rule))
-                        result.add_detail("Request", r.reqinfo, generateResponse(r), "Payload:{} Receive from Dnslog".format(payload, repr(dnslist)))
+                        result = self.generate_result()
+                        result.main(Type.REQUEST, self.request.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload, msg="Receive from Dnslog".format(rule))
+                        result.step("Request", r.reqinfo, generateResponse(r), "Payload:{} Receive from Dnslog".format(payload, repr(dnslist)))
                         self.success(result)
                         break

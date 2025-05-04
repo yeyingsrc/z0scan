@@ -6,15 +6,15 @@ import re
 import requests
 from urllib.parse import urlparse
 
-from api import generateResponse, VulType, PLACE, Type, ResultObject, PluginBase, KB, WEB_SERVER
+from api import generateResponse, VulType, PLACE, Type, ResultObject, PluginBase, KB
 
 class Z0SCAN(PluginBase):
-    name = "OSSBucketTakeover"
+    name = "other-oss-takeover"
     desc = 'OSS Bucket Takeover'
 
     def condition(self):
         for k, v in self.response.webserver.items():
-            if k == WEB_SERVER.OSS:
+            if k == "OSS":
                 return True
         return False
         
@@ -28,8 +28,8 @@ class Z0SCAN(PluginBase):
                 'bucketyouare trying to access does not exist', 'bucket is not found',
                 'bucket doesnotexist', 'bucketnotfound', 'nosuchbucket']:
                 if keyword in response_text:
-                    result = self.new_result()
-                    result.init_info(Type.Request, r.url, self.requests.netloc, VulType.OTHER, PLACE.URL)
-                    result.add_detail("Request", r.reqinfo, generateResponse(r), "Match KeyWord: {}".format(keyword))
+                    result = self.generate_result()
+                    result.main(Type.Request, r.url, self.requests.netloc, VulType.OTHER, PLACE.URL)
+                    result.step("Request", r.reqinfo, generateResponse(r), "Match KeyWord: {}".format(keyword))
                     self.success(result)
                     return True

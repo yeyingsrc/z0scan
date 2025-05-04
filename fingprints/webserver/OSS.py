@@ -3,7 +3,6 @@
 # @name:    OSS
 
 from re import search, I, compile, error
-from lib.core.enums import WEB_SERVER
 from api import KB
 
 def _prepare_pattern(pattern):
@@ -22,5 +21,6 @@ keys = ['aliyunoss', 'amazons3', 'minio', 'ceph']
 def fingerprint(headers, content):
     if 'server' in headers.keys():
         for _ in keys:
-            if search(_, headers["server"], I): return WEB_SERVER.OSS, None
+            if search(_, headers["server"], I):
+                return "OSS", None
     return None, None

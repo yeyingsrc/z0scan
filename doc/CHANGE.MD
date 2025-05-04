@@ -2,7 +2,7 @@
 
 **2025.2.7**
 1. 新增PerServer插件
-* IISShortName IIS短文件名漏洞 (参考lijiejie/IIS\_shortname\_Scanner)
+* sensi-iis-shortname IIS短文件名漏洞 (参考lijiejie/IIS\_shortname\_Scanner)
 1. 修复IIS服务正则匹配问题
 2. 对指纹进行合并调整 (也做了少量的删减)
 3. 向config中引入更多的配置，允许更高的自定义
@@ -11,15 +11,15 @@
 1. 修复响应头部匹配问题
 2. 添加WAF被动检测逻辑 (部分正则匹配来自Wafw00f)
 3. 完善服务指纹匹配以获取服务版本信息 (允许漏洞检测插件读取)
-4. 对level数值范围进行调整
+4. 对level进行调整
 5. 插件调整
-* 调整IISShortName插件以支持高版本IIS短文件名漏洞发现 (参考abc123info/iis7.5-10.x-ShortNameFuzz)
+* 调整sensi-iis-shortname插件以支持高版本IIS短文件名漏洞发现 (参考abc123info/iis7.5-10.x-ShortNameFuzz)
 
 **2025.2.9**
 1. 新增PerServer插件:
-* NginxWebcache Nginx错误配置-Webcache缓存清除 (参考stark0de/nginxpwner)
-* NginxCRLF Nginx错误配置-CRLF注入 (参考stark0de/nginxpwner)
-* NginxVariableLeakage Nginx错误配置-变量读取 (参考stark0de/nginxpwner)
+* other-nginx-clearcache Nginx错误配置-缓存清除 (参考stark0de/nginxpwner)
+* crlf-nginx Nginx错误配置-CRLF注入 (参考stark0de/nginxpwner)
+* sensi-nginx-readvar Nginx错误配置-变量读取 (参考stark0de/nginxpwner)
 
 **2025.2.10**
 1. 修复了baseproxy下请求编码问题
@@ -30,7 +30,7 @@
 1. 增加了WAF记录
 2. 修复了几处Bug
 3. 新增PerServer插件
-* OSSTakeover 可能的储存桶接管漏洞
+* other-oss-takeover 可能的储存桶接管漏洞
 4. 新增Fingprints指纹
 * OSS 用于检测OSS服务
 5. 对Level的划分做出调整（见插件列表）
@@ -38,7 +38,7 @@
 **2025.2.12**
 1. 添加了对伪静态SQL注入点的判断（目前仅支持盲注的伪静态发现）
 2. 添加了对HQL语法报错的正则匹配
-[] 发现SQLiTime存在结果不返回问题（未知Bug）
+[] 发现sqli-time存在结果不返回问题（未知Bug）
 
 **2025.3.3**
 1. 修复了高版本Python下的模块导入问题（自此兼容性为Python >= 3.7）
@@ -50,16 +50,16 @@
 **2025.3.9**
 1. 对框架的部分功能做出细微调整
 2. 插件调整
-* 修复OSSTakeover存在的致命Bug
+* 修复other-oss-takeover存在的致命Bug
 
 **2025.3.11**
 1. 新增PerFile插件
-* XpathiError Xpath注入检测-基于报错
-* Redirect 重定向检测
+* xpathi-error Xpath注入检测-基于报错
+* redirect 重定向检测
 
 **2025.3.13**
 1. 插件调整
-* 优化了SQLiBool的逻辑，对Payloads做出调整以实现在WAF下的检测
+* 优化了sqli-bool的逻辑，对Payloads做出调整以实现在WAF下的检测
 2. 插件描述及相关信息英文化输出
 3. 部分插件实现参数分发的多线程
 
@@ -73,7 +73,7 @@
 ### 2025.3.21 发布
 
 **2025.3.25**
-1. 优化框架结构: 正则规则与目录字典外置于data中
+1. 优化框架结构: 正则规则与敏感目录字典外置于data中
 2. 支持了在触发WAF后的正则匹配（优先级: 正则匹配>页面差异比较）
 
 **2025.3.26**
@@ -93,12 +93,30 @@
 **2025.4.12**
 1. 修复线程池关闭问题
 2. 插件调整
-* 调整SQLiBool的Payload，降低WAF拦截率
-* 加入了新的JsSensitive规则
+* 调整sqli-bool的Payload，降低WAF拦截率
+* 加入了新的sensi-js规则
 1. 修复了大量的SyntaxWarning
-2. 对相似URL作出调整
+2. 对相似URL逻辑作出调整
 
 **2025.4.13**
 1. 修复了一处逻辑问题&一些小Bug
 
 ### 2025.4.13 发布
+
+**2025.4.28**
+1. 对一些变量及函数名称做出调整
+2. 规范化插件名称
+
+**2025.5.1**
+1. 收集并整理了更多的JS敏感信息规则
+2. 修复了HTML报告的“详情”显示问题
+3. 修复了checkwaf的一处问题导致的错误返回
+4. Level被重新设定为int，规范了Level的划定
+5. 扫描状态显示修改为摁下键盘ESC时显示
+
+**2025.5.4**
+1. 新增插件
+* upload-oss OSS储存桶文件覆盖上传漏洞
+* sensi-viewstate 未加密的VIEWSTATE发现（可能产生反序列化）
+
+### 2025.5.4 发布

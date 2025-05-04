@@ -3,13 +3,8 @@
 # w8ay 2019/6/30
 # JiuZero 2025/4/12
 
-import copy
 import difflib
-import re
-import random
-import config
 import requests
-from urllib import parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from api import random_str, generateResponse, url_dict2str, PLACE, VulType, HTTPMETHOD, Type, PluginBase, logger, conf
@@ -17,7 +12,7 @@ from lib.helper.diifpage import findDynamicContent, getFilteredPageContent, remo
 
 
 class Z0SCAN(PluginBase):
-    name = "SQLiBool"
+    name = "sqli-bool"
     desc = 'Bool SQL Finder'
     
     def __init__(self):
@@ -39,9 +34,7 @@ class Z0SCAN(PluginBase):
         self.dynamic = []
     
     def condition(self):
-        if 1 in conf.level:
-            return True
-        return False
+        return True
     
     def findDynamicContent(self, firstPage, secondPage):
         ret = findDynamicContent(firstPage, secondPage)
@@ -94,7 +87,7 @@ class Z0SCAN(PluginBase):
                 "key": k,
                 "payload": payload_true,
                 "position": positon,
-                "desc": "发送True请求包与原网页相似度:{}".format(ratio_true)
+                "desc": "The similarity between the true request packet and the original web page:{}".format(ratio_true)
             })
             ret.append({
                 "request": r2.reqinfo,
@@ -102,7 +95,7 @@ class Z0SCAN(PluginBase):
                 "key": k,
                 "payload": payload_false,
                 "position": positon,
-                "desc": "发送False请求包与原网页相似度:{}".format(ratio_false)
+                "desc": "The similarity between the False request packet and the original web page:{}".format(ratio_false)
             })
             return ret
         else:
@@ -143,11 +136,11 @@ class Z0SCAN(PluginBase):
                     try:
                         future.result()
                     except Exception as task_e:
-                        logger.error(f"Task failed: {task_e}", origin="SQLiBool")
+                        logger.error(f"Task failed: {task_e}", origin=self.name)
             except KeyboardInterrupt:
                 executor.shutdown(wait=False)
             except Exception as e:
-                logger.error(f"Unexpected error: {e}", origin="SQLiBool")
+                logger.error(f"Unexpected error: {e}", origin=self.name)
                 executor.shutdown(wait=False)
                     
     def process(self, _):
@@ -161,9 +154,15 @@ class Z0SCAN(PluginBase):
             ["') AND True#", "') AND False#"],
             ['") AND True#', '") AND False#'], 
         ]
+        if conf.level == 3:
+            payloads1 = [
+                ["''AND''True", "''AND''False"],
+                ['""AND True#""', '""AND False#""'],
+            ]
         if str(v).isdigit():
             int_payloads = [
                 ["-0", "-10000"],
+                ["/1", "/0"],
                 [" AND True", " AND False"],
                 [" AND True#", " AND False#"],
             ]
@@ -173,6 +172,8 @@ class Z0SCAN(PluginBase):
                 payloads = [
                     ["-0", "-10000"],
                 ]
+                if conf.level >= 2:
+                   payloads += [["/1", "/0"],]
             else:
                 return
         for payload in payloads:
@@ -182,11 +183,11 @@ class Z0SCAN(PluginBase):
                 payload_true, payload_false = payload
                 ret2 = self.inject(k, v, position, payload_false, payload_true)
                 if ret2:
-                    result = self.new_result()
-                    result.init_info(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload)
+                    result = self.generate_result()
+                    result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload)
                     for values in ret1:
-                        result.add_detail("The First Bool Injection Test", values["request"], values["response"], values["desc"])
+                        result.step("The First Bool Injection Test", values["request"], values["response"], values["desc"])
                     for values in ret2:
-                        result.add_detail("The Second Bool Injection Test", values["request"], values["response"], values["desc"])
+                        result.step("The Second Bool Injection Test", values["request"], values["response"], values["desc"])
                     self.success(result)
                     return True

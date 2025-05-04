@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/6/28
-# JiuZero 2025/3/1
+# JiuZero 2025/5/2
 
 import copy, threading, time, traceback, config
+from pynput import keyboard
 
 from lib.core.data import KB, conf
 from lib.core.log import logger, dataToStdout, colors
@@ -63,39 +64,50 @@ def run_threads(num_threads, thread_function, args: tuple = ()):
 def start():
     run_threads(conf.threads, task_run)
 
-
 def task_run():
-    while KB["continue"] or not KB["task_queue"].empty():
-        poc_module_name, request, response = KB["task_queue"].get()
-        KB.lock.acquire()
-        KB.running += 1
-        if poc_module_name not in KB.running_plugins:
-            KB.running_plugins[poc_module_name] = 0
-        KB.running_plugins[poc_module_name] += 1
-        KB.lock.release()
-        printProgress()
-        poc_module = copy.deepcopy(KB["registered"][poc_module_name])
-        poc_module.execute(request, response)
-        KB.lock.acquire()
-        KB.finished += 1
-        KB.running -= 1
-        KB.running_plugins[poc_module_name] -= 1
-        if KB.running_plugins[poc_module_name] == 0:
-            del KB.running_plugins[poc_module_name]
-
-        KB.lock.release()
-        printProgress()
-    printProgress()
-    # TODO
-    # set task delay
-
+    KB.esc_triggered = False
+    def on_press(key):
+        if key == keyboard.Key.ctrl: # 不监听Ctrl键
+            return
+        elif key == keyboard.Key.esc: # 显示扫描状态
+            KB.esc_triggered = True
+        elif key == keyboard.Key.enter: # 暂停扫描
+            KB.pause = True
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+    try:
+        while KB["continue"] or not KB["task_queue"].empty():
+            poc_module_name, request, response = KB["task_queue"].get()
+            KB.lock.acquire()
+            KB.running += 1
+            if poc_module_name not in KB.running_plugins:
+                KB.running_plugins[poc_module_name] = 0
+            KB.running_plugins[poc_module_name] += 1
+            KB.lock.release()
+            if KB.esc_triggered:
+                printProgress()
+                KB.esc_triggered = False
+            poc_module = copy.deepcopy(KB["registered"][poc_module_name])
+            poc_module.execute(request, response)
+            KB.lock.acquire()
+            KB.finished += 1
+            KB.running -= 1
+            KB.running_plugins[poc_module_name] -= 1
+            if KB.running_plugins[poc_module_name] == 0:
+                del KB.running_plugins[poc_module_name]
+            KB.lock.release()
+            if KB.esc_triggered:
+                printProgress()
+                KB.esc_triggered = False
+        if KB.esc_triggered:
+            printProgress()
+            KB.esc_triggered = False
+    finally:
+        listener.stop()
 
 def printProgress():
     KB.lock.acquire()
-    if config.SHOW_STATE:
-        msg = '\033[36m%d\033[0m SUCCESS | \033[36m%d\033[0m RUNNING | \033[36m%d\033[0m REMAIN | \033[36m%s\033[0m SCANNED IN %.2fs' % (KB.output.count(), KB.running, KB.task_queue.qsize(), KB.finished, time.time() - KB.start_time)
-        _ = '\r' + ' ' * (KB['console_width'][0] - len(msg)) + msg
-        dataToStdout(_)
+    logger.info(f'{colors.g}{KB.output.count():d}{colors.e} SUCCESS | {colors.g}{KB.running:d}{colors.e} RUNNING | {colors.g}{KB.task_queue.qsize():d}{colors.e} REMAIN | {colors.g}{KB.finished:d}{colors.e} SCANNED IN {time.time()-KB.start_time:.2f}s')
     KB.lock.release()
 
 

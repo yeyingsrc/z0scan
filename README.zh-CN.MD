@@ -19,27 +19,31 @@
       <img src="https://img.shields.io/pypi/v/z0scan">
   <a href="https://www.gnu.org/licenses/gpl-2.0.en.html">
       <img src="https://img.shields.io/badge/License-GPL2-_red.svg">
+      <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/jiuzero/z0scan">
   </a>
 </p>
+
+## ⚠️ 免责声明
+
+> 如您在使用本项目及包含工具的过程中存在任何非法行为，您需自行承担相应后果，我们将不承担任何法律及连带责任。
+
+> 您的使用行为或者您以其他任何明示或者默示方式表示接受本协议的，即视为您已阅读并同意本协议的约束。
 
 ## 🌟 优势
 
 1. WAF判断、指纹信息与插件扫描的联动
-**「更少的WAF触发、更少的请求量、更强的针对性」**
+**「更少的WAF触发、更低的请求量、精准切入」**
 
 2. 伪静态的支持与其它漏洞的支持
-**「更强的漏洞发现能力」**
+**「更宽的检索面」**
 
-3. 独特的相似扫描跳过机制
-**「更少的请求量」**
+3. 辅助发现敏感信息与潜在漏洞
+**「辅助发现能力」**
 
-4. 辅助发现敏感信息与潜在漏洞
-**「具备辅助能力」**
-
-5. 以SQLite3提供扫描记录等数据储存支持
+4. 以SQLite3提供扫描记录等数据储存支持
 **「大规模、高效」**
 
-6. 基于Python3开源
+5. 基于Python3开源
 **「高自定义」**
 
 ## 🔧 安装
@@ -47,9 +51,9 @@
 **cryptography**依赖适配性安装（可选）：
 |环境|命令|
 |:---:|:----:|
-|Debian/Ubuntu| ```apt install python-cryptography``` |
-|Termux| ```pkg install python-cryptography``` |
-|Alpine/iSH| ```apk add py3-cryptography``` |
+|Debian/Ubuntu| `apt install python-cryptography` |
+|Termux| `pkg install python-cryptography` |
+|Alpine/iSH| `apk add py3-cryptography` |
 
 通过**Pypi**安装
 ```bash
@@ -130,44 +134,46 @@ Optimization:
 
 |插件名称|插件简述|
 |:---:|:----:|
-|SQLiBool|SQL布尔盲注检测|
-|SQLiTime|SQL时间盲注检测|
-|SQLiError|SQL报错注入检测|
-|AspCodei|Asp代码执行|
-|PhpCodei|Php代码执行|
-|Cmdi|命令执行|
-|ObjectDese|反序列参数分析|
-|JsSensi|Js敏感信息泄露|
-|Jsonp|Js敏感信息泄露|
-|PhpRealPath|Php真实目录发现|
-|Redirect|重定向|
-|XpathiError|基于报错的XPATH注入检测|
-|PathTrave|路径穿越|
+|sqli-bool|SQL布尔盲注检测|
+|sqli-time|SQL时间盲注检测|
+|sqli-error|SQL报错注入检测|
+|codei-asp|Asp代码执行|
+|codei-php|Php代码执行|
+|cmdi|命令执行|
+|objectdese|反序列参数分析|
+|sensi-js|Js敏感信息泄露|
+|sensi-jsonp|Js敏感信息泄露|
+|sensi-php-phprealpath|Php真实目录发现|
+|redirect|重定向|
+|xpathi-error|基于报错的XPATH注入检测|
+|trave-path|路径穿越|
 
 - PerFolder
 
 |插件名称|插件简述|
 |:---:|:----:|
-|BackupFolder|备份文件扫描|
-|DirTrave|目录遍历|
-|RepositoryLeak|仓库源码泄漏|
-|Phpinfo|Phpinfo文件发现|
+|sensi-backupfolder|备份文件扫描|
+|trave-dir|目录遍历|
+|sensi-repositoryleak|仓库源码泄漏|
+|sensi-php-phpinfo|Phpinfo文件发现|
 
 - PerServer
 
 |插件名称|插件简述|
 |:---:|:----:|
-|IISShortname|IIS短文件名漏洞检测|
-|IISNginxParse|IIS与Nginx服务解析漏洞|
-|ErrorPage|错误页敏感信息泄露|
-|OSSTakeover|OSS储存桶接管|
-|NetXSS|.NET通杀XSS|
-|NginxCRLF|Nginx服务CRLF注入|
-|NginxWebcache|Nginx错误配置-缓存清除|
-|FlashXSS|Flash通杀XSS|
-|NginxVariableLeakage|Nginx错误配置-变量读取|
-|IdeaParse|Idea目录解析|
-|BackupDomain|基于域名的备份文件检测|
+|sensi-iis-shortname|IIS短文件名漏洞检测|
+|other-nginx_iis-parse|IIS与Nginx服务解析漏洞|
+|sensi-errorpage|错误页敏感信息泄露|
+|takeover-oss|OSS储存桶接管|
+|xss-net|.NET通杀XSS|
+|crlf-nginx|Nginx服务CRLF注入|
+|other-nginx-clearcache|Nginx错误配置-缓存清除|
+|xss-flash|Flash通杀XSS|
+|sensi-nginx-readvar|Nginx错误配置-变量读取|
+|other-idea-parse|Idea目录解析|
+|sensi-backupdomain|基于域名的备份文件检测|
+|upload-oss|OSS储存桶文件覆盖上传漏洞|
+|sensi-viewstate|未加密的VIEWSTATE发现|
 
 - 插件编写规范请见：
 [DEV.MD](https://github.com/JiuZero/z0scan/blob/master/doc/DEV.MD)
@@ -197,4 +203,4 @@ etc…
 |:---:|:----:|
 |QQ|3973580951|
 |Email|jiuzer0@qq.com|
-|WeiXin|JiuZer0|
+|WeiXin|JiuZer1|

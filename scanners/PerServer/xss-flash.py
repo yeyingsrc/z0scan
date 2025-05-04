@@ -10,11 +10,11 @@ from api import generateResponse, md5, conf, KB, VulType, PLACE, Type, PluginBas
 
 
 class Z0SCAN(PluginBase):
-    name = "FlashXSS"
+    name = "xss-flash"
     name = 'Flash SWF XSS'
     
     def condition(self):
-        if 4 in conf.level and self.response.waf:
+        if not self.response.waf:
             return True
         return False
         
@@ -48,7 +48,7 @@ class Z0SCAN(PluginBase):
                 if req.status_code == 200:
                     md5_value = md5(req.content)
                     if md5_value in md5_list:
-                        result = self.new_result()
-                        result.init_info(Type.Request, self.requests.netloc, req.url, VulType.XSS, PLACE.URL)
-                        result.add_detail("Request", req.reqinfo, generateResponse(req), "Match md5: {}".format(md5_value))
+                        result = self.generate_result()
+                        result.main(Type.Request, self.requests.netloc, req.url, VulType.XSS, PLACE.URL)
+                        result.step("Request", req.reqinfo, generateResponse(req), "Match md5: {}".format(md5_value))
                         self.success(result)

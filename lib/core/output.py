@@ -114,7 +114,7 @@ class ResultObject(object):
         self.path = baseplugin.path # 插件路径
         self.detail = collections.OrderedDict()
 
-    def init_info(self, type: str, hostname: str, url: str, vultype: str, position: str, param=None, payload=None, msg=None):
+    def main(self, type: str, hostname: str, url: str, vultype: str, position: str, param=None, payload=None, msg=None):
         self.type = type
         self.hostname = hostname
         self.url = url
@@ -125,13 +125,13 @@ class ResultObject(object):
         self.msg = msg
 
     # 漏洞验证过程的细节展示
-    def add_detail(self, name: str, request: str, response: str, msg: str):
+    def step(self, name: str, request: str, response: str, msg: str):
         if name not in self.detail:
             self.detail[name] = []
         self.detail[name].append({
             "request": request,#请求
             "response": response,#响应
-            "msg": msg#说明
+            "msg": msg,#说明
         })
 
     def output(self):

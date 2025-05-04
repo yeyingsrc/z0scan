@@ -5,39 +5,30 @@
 
 import requests
 
-from api import generateResponse, conf, WEB_PLATFORM, VulType, PLACE, PluginBase, Type
+from api import generateResponse, conf, VulType, PLACE, PluginBase, Type, KB
 from lib.helper.helper_phpinfo import get_phpinfo
 
 
 class Z0SCAN(PluginBase):
-    name = "Phpinfo"
+    name = "sensi-php-phpinfo"
     desc = 'Phpinfo Finder'
     
     def condition(self):
         for k, v in self.response.programing.items():
-            if k == WEB_PLATFORM.PHP and 4 in conf.level:
+            if k == "PHP":
                 return True
         return False
         
     def audit(self):
         if self.condition():
             headers = self.requests.headers.copy()
-            variants = [
-                "phpinfo.php",
-                "pi.php",
-                "php.php",
-                "i.php",
-                "test.php",
-                "temp.php",
-                "info.php",
-            ]
-            for phpinfo in variants:
+            for phpinfo in KB.dicts["phpinfo"]:
                 testURL = self.requests.netloc.rstrip("/") + "/" + phpinfo
                 r = requests.get(testURL, headers=headers)
                 flag = "<title>phpinfo()</title>"
                 if flag in r.text:
                     info = get_phpinfo(r.text)
-                    result = self.new_result()
-                    result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL)
-                    result.add_detail("Request", r.reqinfo, generateResponse(r), '\n'.join(info))
+                    result = self.generate_result()
+                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL)
+                    result.step("Request", r.reqinfo, generateResponse(r), '\n'.join(info))
                     self.success(result)

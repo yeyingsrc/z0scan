@@ -8,11 +8,11 @@
 import os
 import requests
 
-from api import conf, generateResponse, VulType, PLACE, Type, PluginBase
+from api import conf, generateResponse, VulType, PLACE, Type, PluginBase, KB
 
 
 class Z0SCAN(PluginBase):
-    name = "BackupFolder"
+    name = "sensi-backupfolder"
     desc = 'Backup File Of Each Folder'
 
     def _check(self, content):
@@ -41,16 +41,11 @@ class Z0SCAN(PluginBase):
         return False
     
     def condition(self):
-        if 2 in conf.level:
-            return True
-        return False
+        return True
         
     def audit(self):
         if self.condition():
-            file_dic = ['bak.rar', 'bak.zip', 'backup.rar', 'backup.zip', 'www.zip', 'www.rar', 'web.rar', 'web.zip',
-                        'wwwroot.rar',
-                        'wwwroot.zip', 'log.zip', 'log.rar']
-
+            file_dic = KB.dicts["backup"]
             url = self.requests.url.rstrip("/")
             directory = os.path.basename(url)
             headers = self.requests.headers.copy()
@@ -70,7 +65,7 @@ class Z0SCAN(PluginBase):
                         continue
 
                     rarsize = int(r.headers.get('Content-Length')) // 1024 // 1024
-                    result = self.new_result()
-                    result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, msg="File Sizes {}M".format(rarsize))
-                    result.add_detail("Request", r.reqinfo, content.decode(errors='ignore'), "File Sizes {}M".format(rarsize))
+                    result = self.generate_result()
+                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, msg="File Sizes {}M".format(rarsize))
+                    result.step("Request", r.reqinfo, content.decode(errors='ignore'), "File Sizes {}M".format(rarsize))
                     self.success(result)

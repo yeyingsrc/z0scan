@@ -19,13 +19,11 @@ from lib.helper.jscontext import analyse_Literal
 
 
 class Z0SCAN(PluginBase):
-    name = "Jsonp"
+    name = "sensi-jsonp"
     desc = 'JSONP Sensitive Finder'
 
     def condition(self):
-        if 0 in conf.level:
-            return True
-        return False
+        return True
     
     def jsonp_load(self, jsonp):
         match = re.search(r'^[^(]*?\((.*)\)[^)]*$', jsonp)
@@ -101,7 +99,7 @@ class Z0SCAN(PluginBase):
         if not result2:
             return
         result = ResultObject(self)
-        result.init_info(Type.REQUEST, self.requests.hostname, req.url, VulType.SENSITIVE, PLACE.PARAMS, msg="Match Sensitive Info {}".format(repr(result2)))
-        result.add_detail("Request", self.requests.raw, self.response.raw, "Match Sensitive Info {}".format(repr(result2)))
+        result.main(Type.REQUEST, self.requests.hostname, req.url, VulType.SENSITIVE, PLACE.PARAMS, msg="Match Sensitive Info {}".format(repr(result2)))
+        result.step("Request", self.requests.raw, self.response.raw, "Match Sensitive Info {}".format(repr(result2)))
         self.success(result)
         return True

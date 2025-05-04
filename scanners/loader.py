@@ -12,7 +12,7 @@ from lib.core.common import isListLike, get_parent_paths
 from lib.core.data import conf, KB
 from lib.core.log import logger, colors
 from lib.core.checkwaf import CheckWaf
-from lib.core.enums import WEB_PLATFORM, OS, HTTPMETHOD
+from lib.core.enums import HTTPMETHOD
 from lib.core.plugins import PluginBase
 from lib.parse.parse_request import FakeReq
 from lib.parse.parse_responnse import FakeResp
@@ -60,10 +60,10 @@ class Z0SCAN(PluginBase):
 
         # Waf检测
         if not conf.ignore_waf:
-            while KB["limit"]:
+            while KB.limit:
                 pass
             CheckWaf(self)
-            KB["limit"] = False
+            KB.limit = False
 
         if params:
             cv = {
@@ -82,15 +82,15 @@ class Z0SCAN(PluginBase):
         # 根据后缀判断语言与系统
         exi = self.requests.suffix.lower()
         if exi == ".asp":
-            self.response.programing[WEB_PLATFORM.ASP] = None
-            self.response.os[OS.WINDOWS] = None
+            self.response.programing["ASP"] = None
+            self.response.os["WINDOWS"] = None
         elif exi == ".aspx":
-            self.response.programing[WEB_PLATFORM.ASPX] = None
-            self.response.os[OS.WINDOWS] = None
+            self.response.programing["ASP"] = None
+            self.response.os["WINDOWS"] = None
         elif exi == ".php":
-            self.response.programing[WEB_PLATFORM.PHP] = None
+            self.response.programing["PHP"] = None
         elif exi == ".jsp" or exi == ".do" or exi == ".action":
-            self.response.programing[WEB_PLATFORM.JAVA] = None
+            self.response.programing["JAVA"] = None
         
         lower_headers = {k.lower(): v for k, v in self.response.headers.items()}
         for name, values in KB["fingerprint"].items():

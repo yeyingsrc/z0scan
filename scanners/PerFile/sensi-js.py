@@ -5,16 +5,16 @@
 
 import re
 
-from data.rule.JsSensitive import rules
+from data.rule.sensi_js import rules
 from api import VulType, PLACE, Type, ResultObject, PluginBase, conf
 
 
 class Z0SCAN(PluginBase):
-    name = "JsSensi"
+    name = "sensi-js"
     desc = 'Js Sensitive Finder'
 
     def condition(self):
-        if self.requests.suffix == ".js" and 0 in conf.level:
+        if self.requests.suffix == ".js":
             return True
         return False
         
@@ -37,8 +37,8 @@ class Z0SCAN(PluginBase):
                         continue
 
                     result = ResultObject(self)
-                    result.init_info(Type.ANALYZE, self.requests.hostname, self.requests.url, VulType.SENSITIVE, PLACE.URL, msg="From Regx {} Find Sensitive Info {}".format(_, text))
-                    result.add_detail("Request", self.requests.raw, self.response.raw, "From Regx {} Find Sensitive Info {}".format(_, text))
+                    result.main(Type.ANALYZE, self.requests.hostname, self.requests.url, VulType.SENSITIVE, PLACE.URL, msg="From Regx {} Find Sensitive Info {}".format(_, text))
+                    result.step("Request", self.requests.raw, self.response.raw, "From Regx {} Find Sensitive Info {}".format(_, text))
                     self.success(result)
                     issuc = True
                     break

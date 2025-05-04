@@ -9,7 +9,7 @@ from api import generateResponse, VulType, PLACE, PluginBase, Type
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Z0SCAN(PluginBase):
-    name = "Unauth"
+    name = "unauth"
     desc = 'Unauthorized'
     seqMatcher = difflib.SequenceMatcher(None)
     SIMILAR_MIN = 0.90
@@ -32,9 +32,9 @@ class Z0SCAN(PluginBase):
         self.seqMatcher = difflib.SequenceMatcher(None, resp[:min_len], r.text[:min_len])
         ratio = round(self.seqMatcher.quick_ratio(), 3)
         if ratio > self.SIMILAR_MIN:
-            result = self.new_result()
-            result.init_info(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.UNAUTH, PLACE.HEADER, msg="Delete {}".format(k))
-            result.add_detail("Request", r.reqinfo, generateResponse(r), "Delete {}".format(k))
+            result = self.generate_result()
+            result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.UNAUTH, PLACE.HEADER, msg="Delete {}".format(k))
+            result.step("Request", r.reqinfo, generateResponse(r), "Delete {}".format(k))
             self.success(result)
             return
 

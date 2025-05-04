@@ -3,7 +3,6 @@
 # w8ay 2020/4/3
 
 import chardet
-from lib.core.enums import WEB_SERVER
 
 class FakeResp(object):
 

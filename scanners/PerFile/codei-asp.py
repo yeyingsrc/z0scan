@@ -6,16 +6,16 @@
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from api import PluginBase, WEB_PLATFORM, conf, ResultObject, VulType, generateResponse, Type, logger
+from api import PluginBase, conf, ResultObject, VulType, generateResponse, Type, logger
 
 
 class Z0SCAN(PluginBase):
-    name = "AspCodei"
+    name = "codei-asp"
     desc = 'ASP Code Injection'
 
     def condition(self):
         for k, v in self.response.programing.items():
-            if k == WEB_PLATFORM.ASP and 4 in conf.level and not self.response.waf:
+            if k == "ASP" and not self.response.waf:
                 return True
         return False
         
@@ -40,11 +40,11 @@ class Z0SCAN(PluginBase):
                         try:
                             future.result()
                         except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin="AspCodei")
+                            logger.error(f"Task failed: {task_e}", origin=self.name)
                 except KeyboardInterrupt:
                     executor.shutdown(wait=False)
                 except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin="AspCodei")
+                    logger.error(f"Unexpected error: {e}", origin=self.name)
                     executor.shutdown(wait=False)
                     
     def process(self, _, _payloads, randint3):
@@ -57,8 +57,8 @@ class Z0SCAN(PluginBase):
             html = r.text
             if str(randint3) in html:
                 result = ResultObject(self)
-                result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.CODE_INNJECTION, position, param=k, payload=payload)
-                result.add_detail("Request", r.reqinfo, generateResponse(r), "Match Int {}".format(randint3))
+                result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.CODE_INNJECTION, position, param=k, payload=payload)
+                result.step("Request", r.reqinfo, generateResponse(r), "Match Int {}".format(randint3))
                 self.success(result)
                 return True
     

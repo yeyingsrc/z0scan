@@ -8,13 +8,11 @@ from api import PluginBase, ResultObject, VulType, isJavaObjectDeserialization, 
 
 
 class Z0SCAN(PluginBase):
-    name = "ObjectDese"
+    name = "objectdese"
     desc = 'ObjectDeserialization Finder'
 
     def condition(self):
-        if 1 in conf.level:
-            return True
-        return False
+        return True
     
     def _check(self, k, v, position):
         whats = None
@@ -26,8 +24,8 @@ class Z0SCAN(PluginBase):
             whats = "PythonObjectDeserialization"
         if whats:
             result = ResultObject(self)
-            result.init_info(Type.ANALYZE, self.requests.hostname, self.requests.url, VulType.OTHER, position, param=k, payload=v, msg="Type is {}".format(whats))
-            result.add_detail("Request", self.requests.raw, self.response.raw, "{} is the deserialization of {} as result".format(k, whats))
+            result.main(Type.ANALYZE, self.requests.hostname, self.requests.url, VulType.OTHER, position, param=k, payload=v, msg="Type is {}".format(whats))
+            result.step("Request", self.requests.raw, self.response.raw, "{} is the deserialization of {} as result".format(k, whats))
             self.success(result)
 
     def audit(self):

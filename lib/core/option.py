@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/6/29
-# JiuZero 2025/3/18
+# JiuZero 2025/5/1
 
 import os
 import threading
@@ -22,7 +22,6 @@ from lib.core.db import initdb
 from lib.core.output import OutPut
 from lib.core.settings import banner, DEFAULT_USER_AGENT
 from lib.core.spiderset import SpiderSet
-from lib.core.enums import WEB_SERVER
 from thirdpart.console import getTerminalSize
 from thirdpart.requests import patch_all
 
@@ -32,6 +31,7 @@ def setPaths(root):
     path.certs = os.path.join(root, 'certs')
     path.scanners = os.path.join(root, 'scanners')
     path.data = os.path.join(root, "data")
+    path.data_dict = os.path.join(root, "data", "dict")
     path.fingprints = os.path.join(root, "fingprints")
     path.output = os.path.join(root, "output")
 
@@ -42,17 +42,17 @@ def initKb():
     KB['fingerprint'] = dict()  # 注册的指纹插件列表
     KB['task_queue'] = Queue()  # 初始化队列
     KB["spiderset"] = SpiderSet()  # 去重复爬虫
-    KB["console_width"] = getTerminalSize()  # 控制台宽度
     KB['start_time'] = time.time()  # 开始时间
     KB["lock"] = threading.Lock()  # 线程锁
     KB["output"] = OutPut()
     KB["running_plugins"] = dict()
-
     KB['finished'] = 0  # 完成数量
     KB["result"] = 0  # 结果数量
     KB["running"] = 0  # 正在运行数量
 
-    KB["limit"] = False # 限制WAF检测
+    KB.limit = False
+    KB.dicts = dict()
+    KB.pause = False
 
 def initPlugins():
     # 加载检测插件
@@ -78,10 +78,10 @@ def initPlugins():
                     setattr(mod, 'path', relative_path)
                 KB["registered"][plugin] = mod
             except PluginCheckError as e:
-                logger.error('Not "{}" attribute in the plugin:{}'.format(e, filename))
+                logger.error('Not "{}" attribute in the plugin: {}'.format(e, filename))
             except AttributeError as e:
-                logger.error('Filename:{} not class "{}", Reason:{}'.format(filename, 'Z0SCAN', e))
-    logger.info('Load scanner plugins:{}'.format(len(KB["registered"])-1))
+                logger.error('Filename: {} not class "{}", Reason: {}'.format(filename, 'Z0SCAN', e))
+    logger.info('Load scanner plugins: {}{}{}'.format(colors.y, len(KB["registered"])-1, colors.e))
 
     # 加载指纹识别插件
     num = 0
@@ -93,17 +93,30 @@ def initPlugins():
                 continue
             name = os.path.split(os.path.dirname(filename))[-1]
             mod = load_file_to_module(filename)
-
             if not getattr(mod, 'fingerprint'):
-                logger.error("filename:{} load faild,not function 'fingerprint'".format(filename))
+                logger.error("filename: {} load faild,not function 'fingerprint'".format(filename))
                 continue
             if name not in KB["fingerprint"]:
                 KB["fingerprint"][name] = []
             KB["fingerprint"][name].append(mod)
             num += 1
-
-    logger.info('Load fingerprint plugins:{}'.format(num))
-
+    logger.info('Load fingerprint plugins: {}{}{}'.format(colors.y, num, colors.e))
+    
+    # 加载模糊字典并储存为列表
+    num = 0
+    for root, dirs, files in os.walk(path.data_dict):
+        files = list(filter(lambda x: x.endswith('.txt'), files))
+        for _ in files:
+            name = os.path.splitext(_)[0]
+            file = os.path.join(path.data_dict, _)
+            try:
+                with open(file, 'r', encoding='utf-8') as f:
+                    content = [line.strip() for line in f.readlines() if line.strip()]
+                    KB.dicts[name] = content
+                    num += 1
+            except Exception as e:
+                logger.warning(f'Error loading dict {file}: {str(e)}')
+    logger.info('Load fuzz dicts: {}{}{}'.format(colors.y, num, colors.e))
 
 def _init_conf():
     conf.version = None
@@ -178,16 +191,16 @@ def _set_conf():
 
 
 def _init_stdout():
+    # 指定扫描等级
+    logger.info("Level of contracting: [#{}{}{}]".format(colors.y, conf.level, colors.e))
     # 不扫描网址
     if len(conf["excludes"]):
-        logger.info("No scanning:{}".format(repr(conf["excludes"])))
+        logger.info("No scanning: {}".format(repr(conf["excludes"])))
     # 指定扫描插件
-    if conf.able:
-        logger.info("Use plugins:{}".format(repr(conf.able)))
-    # 指定使用插件
     if conf.disable:
-        logger.info("Not use plugins:{}".format(repr(conf.disable)))
-    logger.info("Level of contracting: {}{}{}".format(colors.y, conf.level, colors.e))
+        logger.info("Not use plugins: {}".format(repr(conf.disable)))
+    if conf.able:
+        logger.info("Use plugins: {}".format(repr(conf.able)))
     if conf.ignore_waf:
         logger.warning('Ignore the presence of Waf.')
     if conf.html:

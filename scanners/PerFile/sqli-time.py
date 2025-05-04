@@ -8,7 +8,7 @@ from api import generateResponse, random_num, PLACE, VulType, Type, PluginBase, 
 
 
 class Z0SCAN(PluginBase):
-    name = 'SQLiTime'
+    name = 'sqli-time'
     desc = "Delay Time SQLi Injection"
     
     sleep_time = config.SQLi_TIME
@@ -22,7 +22,7 @@ class Z0SCAN(PluginBase):
         return payload1, payload0
 
     def condition(self):
-        if not self.response.waf and 1 in conf.level:
+        if not self.response.waf:
             return True
         return False
         
@@ -84,9 +84,9 @@ class Z0SCAN(PluginBase):
                             break
     
                         if r1 is not None and flag == self.verify_count:
-                            result = self.new_result()
-                            result.init_info(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload1, msg="Dbms Maybe {}; Delay for {}s".format(dbms_type, delta))
-                            result.add_detail("Request", r1.reqinfo, generateResponse(r1), "Dbms Maybe {}; Delay for {}s".format(dbms_type, delta))
+                            result = self.generate_result()
+                            result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload1, msg="Dbms Maybe {}; Delay for {}s".format(dbms_type, delta))
+                            result.step("Request", r1.reqinfo, generateResponse(r1), "Dbms Maybe {}; Delay for {}s".format(dbms_type, delta))
                             self.success(result)
                             return True
     

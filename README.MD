@@ -6,11 +6,11 @@
   <br>
 </h1>
 
-<h3 align="center">An efficient active/passive scanning tool for vulnerability detection in risk assets</h3>
+<h3 align="center">An efficient active/passive scanning tool for vulnerability detection and auxiliary assessment of risky assets.</h4>
 
 <h4 align="center" dir="auto">
   English | <a href="https://github.com/JiuZero/z0scan/blob/master/README.zh-CN.MD">中文</a>
-</h4>
+</p>
 
 <p align="center">
   <a href="https://www.python.org/">
@@ -19,37 +19,41 @@
       <img src="https://img.shields.io/pypi/v/z0scan">
   <a href="https://www.gnu.org/licenses/gpl-2.0.en.html">
       <img src="https://img.shields.io/badge/License-GPL2-_red.svg">
+      <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/jiuzero/z0scan">
   </a>
 </p>
 
+## ⚠️ Disclaimer
+
+> If you engage in any illegal activities while using this project and its included tools, you shall bear all corresponding consequences. We assume no legal or joint liability.
+
+> By using this software or otherwise indicating your acceptance of this agreement, you are deemed to have read and agreed to be bound by this agreement.
+
 ## 🌟 Advantages
 
-1. Integration of WAF detection, fingerprint identification, and plugin scanning  
-**"Less WAF triggering, fewer requests, stronger targeting"**
+1. Integration of WAF detection, fingerprint information, and plugin scanning  
+**"Fewer WAF triggers, lower request volume, precise targeting"**
 
-2. Support for pseudo-static pages and other vulnerabilities  
-**"Enhanced vulnerability discovery capabilities"**
+2. Support for pseudo-static pages and other vulnerability types  
+**"Broader detection coverage"**
 
-3. Unique similarity-based scanning skip mechanism  
-**"Reduced request volume"**
+3. Auxiliary discovery of sensitive information and potential vulnerabilities  
+**"Enhanced discovery capabilities"**
 
-4. Auxiliary discovery of sensitive information and potential vulnerabilities  
-**"Comes with auxiliary capabilities"**
+4. SQLite3 support for scan records and data storage  
+**"Large-scale, high-efficiency operations"**
 
-5. SQLite3-based storage for scan records and data  
-**"Large-scale, high-efficiency"**
-
-6. Open-source Python3 implementation  
-**"Highly customizable"**
+5. Open-source Python3 implementation  
+**"High customizability"**
 
 ## 🔧 Installation
 
 **cryptography** dependency installation (optional):
 |Environment|Command|
 |:---:|:----:|
-|Debian/Ubuntu| ```apt install python-cryptography``` |
-|Termux| ```pkg install python-cryptography``` |
-|Alpine/iSH| ```apk add py3-cryptography``` |
+|Debian/Ubuntu| `apt install python-cryptography` |
+|Termux| `pkg install python-cryptography` |
+|Alpine/iSH| `apk add py3-cryptography` |
 
 Install via **Pypi**
 ```bash
@@ -118,7 +122,7 @@ Optimization:
                         Max number of concurrent network requests (Default
                         31)
   -iw, --ignore-waf     Ignore the WAF during detection
-  -sc, --scan-cookie     Scan cookie during detection
+  -sc, --scan-cookie    Scan cookie during detection
   --disable DISABLE     Disable some plugins (e.g. --disable
                         SQLiBool,SQLiTime)
   --able ABLE           Enable some moudle (e.g. --enable SQLiBool,SQLiTime)
@@ -130,46 +134,48 @@ Optimization:
 
 |Plugin Name|Description|
 |:---:|:----:|
-|SQLiBool|SQL Boolean-based Blind Injection Detection|
-|SQLiTime|SQL Time-based Blind Injection Detection|
-|SQLiError|SQL Error-based Injection Detection|
-|AspCodei|ASP Code Execution|
-|PhpCodei|PHP Code Execution|
-|Cmdi|Command Execution|
-|ObjectDese|Deserialization Parameter Analysis|
-|JsSensi|JS Sensitive Information Leakage|
-|Jsonp|JS Sensitive Information Leakage|
-|PhpRealPath|PHP Real Path Discovery|
-|Redirect|Redirect|
-|XpathiError|Error-based XPATH Injection Detection|
-|PathTrave|Path Traversal|
+|sqli-bool|SQL Boolean-based Blind Injection|
+|sqli-time|SQL Time-based Blind Injection|
+|sqli-error|SQL Error-based Injection|
+|codei-asp|ASP Code Execution|
+|codei-php|PHP Code Execution|
+|cmdi|Command Execution|
+|objectdese|Deserialization Parameter Analysis|
+|sensi-js|JavaScript Sensitive Information Leakage|
+|sensi-jsonp|JSONP Sensitive Information Leakage|
+|sensi-php-phprealpath|PHP Real Path Discovery|
+|redirect|Redirect|
+|xpathi-error|Error-based XPATH Injection|
+|trave-path|Path Traversal|
 
 - PerFolder
 
 |Plugin Name|Description|
 |:---:|:----:|
-|BackupFolder|Backup File Scanning|
-|DirTrave|Directory Traversal|
-|RepositoryLeak|Source Code Repository Leakage|
-|Phpinfo|Phpinfo File Discovery|
+|sensi-backupfolder|Backup File Scanning|
+|trave-dir|Directory Traversal|
+|sensi-repositoryleak|Source Code Repository Leakage|
+|sensi-php-phpinfo|Phpinfo File Discovery|
 
 - PerServer
 
 |Plugin Name|Description|
 |:---:|:----:|
-|IISShortname|IIS Short Filename Vulnerability Detection|
-|IISNginxParse|IIS and Nginx Parsing Vulnerabilities|
-|ErrorPage|Error Page Sensitive Information Leakage|
-|OSSTakeover|OSS Bucket Takeover|
-|NetXSS|.NET Universal XSS|
-|NginxCRLF|Nginx CRLF Injection|
-|NginxWebcache|Nginx Misconfiguration - Cache Purge|
-|FlashXSS|Flash Universal XSS|
-|NginxVariableLeakage|Nginx Misconfiguration - Variable Reading|
-|IdeaParse|Idea Directory Parsing|
-|BackupDomain|Domain-based Backup File Detection|
+|sensi-iis-shortname|IIS Short File Name Vulnerability|
+|other-nginx_iis-parse|IIS and Nginx Parsing Vulnerabilities|
+|sensi-errorpage|Error Page Sensitive Information Leakage|
+|takeover-oss|OSS Bucket Takeover|
+|xss-net|.NET Universal XSS|
+|crlf-nginx|Nginx CRLF Injection|
+|other-nginx-clearcache|Nginx Misconfiguration - Cache Clearing|
+|xss-flash|Flash Universal XSS|
+|sensi-nginx-readvar|Nginx Misconfiguration - Variable Reading|
+|other-idea-parse|Idea Directory Parsing|
+|sensi-backupdomain|Domain-based Backup File Detection|
+|upload-oss| OSS bucket file overwriting upload vulnerability|
+|sensi-viewstate|unencrypted VIEWSTATE discovery|
 
-- Plugin Development Guidelines:
+- Plugin development guidelines:
 [DEV.MD](https://github.com/JiuZero/z0scan/blob/master/doc/DEV.MD)
 
 ## ✨ References
@@ -197,4 +203,4 @@ etc…
 |:---:|:----:|
 |QQ|3973580951|
 |Email|jiuzer0@qq.com|
-|WeChat|JiuZer0|
+|WeiXin|JiuZer1|

@@ -3,7 +3,6 @@
 # @name:    Nginx
 
 from re import search, I, compile, error
-from lib.core.enums import WEB_SERVER
 from api import KB
 
 def _prepare_pattern(pattern):
@@ -24,5 +23,5 @@ def fingerprint(headers, content):
         _ = search(r"nginx(?:/([\d.]+))?\;version:\1", headers["server"], I)
     if _:
         _ = _.group(1) if _ else ""
-        return WEB_SERVER.NGINX, version
+        return "NGINX", version
     return None, None

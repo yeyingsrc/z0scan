@@ -5,11 +5,11 @@
 import requests
 from urllib.parse import urlparse
 
-from api import generateResponse, WEB_SERVER, VulType, PLACE, HTTPMETHOD, ResultObject, PluginBase, KB, Type
+from api import generateResponse, VulType, PLACE, HTTPMETHOD, ResultObject, PluginBase, KB, Type
 
 
 class Z0SCAN(PluginBase):
-    name = "NginxCRLF"
+    name = "crlf-nginx"
     desc = 'NGINX CRLF'
 
     def __init__(self):
@@ -18,7 +18,7 @@ class Z0SCAN(PluginBase):
     
     def condition(self):
         for k, v in self.response.webserver.items():
-            if k == WEB_SERVER.NGINX:
+            if k == "NGINX":
                 return True
         return False
         
@@ -26,7 +26,7 @@ class Z0SCAN(PluginBase):
         if self.condition():
             r = requests.get(self.requests.netloc + self.clrf_path, verify=False)
             if "Detectify" in r.headers:
-                result = self.new_result()
-                result.init_info(Type.Request, self.requests.hostname, r.url, VulType.CRLF, PLACE.URL)
-                result.add_detail("Request", r.reqinfo, generateResponse(r), "Match Keyword: Detectify")
+                result = self.generate_result()
+                result.main(Type.Request, self.requests.hostname, r.url, VulType.CRLF, PLACE.URL)
+                result.step("Request", r.reqinfo, generateResponse(r), "Match Keyword: Detectify")
                 self.success(result)

@@ -8,16 +8,16 @@ import requests
 from copy import deepcopy
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from lib.core.common import get_middle_text, generateResponse
-from api import conf, WEB_PLATFORM, HTTPMETHOD, PLACE, VulType, Type, PluginBase, logger
+from api import conf, HTTPMETHOD, PLACE, VulType, Type, PluginBase, logger
 
 
 class Z0SCAN(PluginBase):
-    name = "PhpRealPath"
+    name = "sensi-php-realpath"
     desc = 'Php Real Path Finder'
     
     def condition(self):
         for k, v in self.response.programing.items():
-            if k == WEB_PLATFORM.PHP and 4 in conf.level:
+            if k == "PHP":
                 return True
         return False
         
@@ -34,11 +34,11 @@ class Z0SCAN(PluginBase):
                         try:
                             future.result()
                         except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin="PhpRealPath")
+                            logger.error(f"Task failed: {task_e}", origin=self.name)
                 except KeyboardInterrupt:
                     executor.shutdown(wait=False)
                 except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin="PhpRealPath")
+                    logger.error(f"Unexpected error: {e}", origin=self.name)
                     executor.shutdown(wait=False)
                     
     def process(self, _):
@@ -48,8 +48,8 @@ class Z0SCAN(PluginBase):
         r = self.req(position, payload)
         if "Warning" in r.text and "array given in " in r.text:
             path = get_middle_text(r.text, 'array given in ', ' on line')
-            result = self.new_result()
-            result.init_info(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SENSITIVE, position, msg="PATH Sensitive {p}".format(p=path), param=_k)
-            result.add_detail("Request", r.reqinfo, generateResponse(r))
+            result = self.generate_result()
+            result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SENSITIVE, position, msg="PATH Sensitive {p}".format(p=path), param=_k)
+            result.step("Request", r.reqinfo, generateResponse(r), "")
             self.success(result)
             return True

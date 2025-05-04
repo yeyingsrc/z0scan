@@ -8,6 +8,7 @@ import sys
 import config
 from lib.core.log import logger
 
+'''
 def int_list(value):
     try:
         values = list(map(int, value.split(',')))
@@ -19,6 +20,7 @@ def int_list(value):
     except ValueError:
         logger.error("The parameter is in the wrong format, please use comma-separated integers (e.g. 1, 2, 3)")
         sys.exit(0)
+'''
 
 def str_list(value):
     try:
@@ -41,7 +43,7 @@ def cmd_line_parser(argv=None):
     parser = argparse.ArgumentParser(prog='Z0SCAN', usage=usage)
     parser.add_argument("-v", "--version", dest="version", action="store_true", help="Show program's version number and exit")
     parser.add_argument("--debug", dest="debug", action="store_true", default=False, help="Show programs's exception")
-    parser.add_argument("-l", "--level", dest="level", type=int_list, default=config.LEVEL, help="Different level use different kind of scanner (Default {})".format(config.LEVEL))
+    parser.add_argument("-l", "--level", dest="level", type=int, default=config.LEVEL, help="Different level use different kind of scanner (Default {})".format(config.LEVEL))
     # Proxy options
     proxy = parser.add_argument_group('Proxy', 'Passive Agent Mode Options')
     proxy.add_argument("-s", "--server-addr", dest="server_addr", help="Server addr format:(ip:port) ")

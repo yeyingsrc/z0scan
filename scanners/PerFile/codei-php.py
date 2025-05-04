@@ -6,17 +6,17 @@
 import random
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from api import VulType, md5, generateResponse, conf, WEB_PLATFORM, PluginBase, Type, logger
+from api import VulType, md5, generateResponse, conf, PluginBase, Type, logger
 from lib.helper.helper_sensitive import sensitive_page_error_message_check
 
 
 class Z0SCAN(PluginBase):
-    name = "PhpCodei"
+    name = "codei-php"
     desc = 'PHP Code Injection'
 
     def condition(self):
         for k, v in self.response.programing.items():
-            if k == WEB_PLATFORM.PHP and 4 in conf.level and not self.response.waf:
+            if k == "PHP" and not self.response.waf:
                 return True
             return False
             
@@ -45,11 +45,11 @@ class Z0SCAN(PluginBase):
                         try:
                             future.result()
                         except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin="PhpCodei")
+                            logger.error(f"Task failed: {task_e}", origin=self.name)
                 except KeyboardInterrupt:
                     executor.shutdown(wait=False)
                 except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin="PhpCodei")
+                    logger.error(f"Unexpected error: {e}", origin=self.name)
                     executor.shutdown(wait=False)
 
     def process(self, _, position, _payloads, verify_result, regx):
@@ -63,15 +63,15 @@ class Z0SCAN(PluginBase):
                 continue
             html1 = r.text
             if verify_result in html1:
-                result = self.new_result()
-                result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload)
-                result.add_detail("Request", r.reqinfo, generateResponse(r), "Receive {}".format(verify_result))
+                result = self.generate_result()
+                result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload)
+                result.step("Request", r.reqinfo, generateResponse(r), "Receive {}".format(verify_result))
                 self.success(result)
                 break
             if re.search(regx, html1, re.I | re.S | re.M):
-                result = self.new_result()
-                result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload)
-                result.add_detail("Request", r.reqinfo, generateResponse(r), "Receive Return {}, maybe is the error because of payload".format(regx))
+                result = self.generate_result()
+                result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload)
+                result.step("Request", r.reqinfo, generateResponse(r), "Receive Return {}, maybe is the error because of payload".format(regx))
                 self.success(result)
                 break
             if not errors:
@@ -80,11 +80,11 @@ class Z0SCAN(PluginBase):
                     errors_raw = (k, v)
 
         if errors:
-            result = self.new_result()
+            result = self.generate_result()
             key, value = errors_raw
-            result.init_info(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SENSITIVE, position, param=key, payload=value)
+            result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SENSITIVE, position, param=key, payload=value)
             for m in errors:
                 text = m["text"]
                 _type = m["type"]
-                result.add_detail("Request", r.reqinfo, generateResponse(r), "Match Tools:{} Match:{}".format(_type, text))
+                result.step("Request", r.reqinfo, generateResponse(r), "Match Tools:{} Match:{}".format(_type, text))
             self.success(result)

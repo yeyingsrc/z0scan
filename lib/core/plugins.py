@@ -40,7 +40,7 @@ class PluginBase(object):
         self.requests: FakeReq = None
         self.response: FakeResp = None
 
-    def new_result(self) -> ResultObject:
+    def generate_result(self) -> ResultObject:
         return ResultObject(self)
 
     def success(self, msg: ResultObject):
@@ -72,8 +72,12 @@ class PluginBase(object):
             for k, v in self.requests.params.items():
                 iterdatas.append([k, v, PLACE.PARAM])
         if self.requests.post_data:
-            for k, v in self.requests.post_data.items():
-                iterdatas.append([k, v, PLACE.DATA])
+            if self.requests.post_hint == POST_HINT.NORMAL or self.requests.post_hint == POST_HINT.ARRAY_LIKE:
+                for k, v in self.requests.post_data.items():
+                    iterdatas.append([k, v, PLACE.DATA])
+            '''
+            elif self.requests.post_hint == POST_HINT.JSON:
+            '''
         if conf.scan_cookie and self.requests.cookies:
             for k, v in self.requests.cookies.items():
                 iterdatas.append([k, v, PLACE.COOKIE])

@@ -3,7 +3,6 @@
 # @name:    Apache
 
 from re import search, I, compile, error
-from lib.core.enums import WEB_SERVER
 from api import KB
 
 def _prepare_pattern(pattern):
@@ -25,5 +24,5 @@ def fingerprint(headers, content):
 
     if _:
         _ = _.group(1) if _ else ""
-        return WEB_SERVER.APACHE, version
+        return "APACHE", version
     return None, None

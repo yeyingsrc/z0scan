@@ -10,11 +10,11 @@ from api import KB, conf, generateResponse, VulType, PLACE, Type, PluginBase
 
 
 class Z0SCAN(PluginBase):
-    name = "IdeaParse"
+    name = "other-idea-parse"
     desc = 'Idea Parse'
     
     def condition(self):
-        if not self.response.waf and 3 in conf.level:
+        if not self.response.waf:
             return True
         return False
         
@@ -41,7 +41,7 @@ class Z0SCAN(PluginBase):
                             if path and path not in path_lst:
                                 path_lst.append(path)
                 if path_lst:
-                    result = self.new_result()
-                    result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.OTHER, PLACE.URL, msg="Dir List: {}".format(repr(path_lst)))
-                    result.add_detail("Request", r.reqinfo, generateResponse(r), "Dir List: {}".format(repr(path_lst)))
+                    result = self.generate_result()
+                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.OTHER, PLACE.URL, msg="Dir List: {}".format(repr(path_lst)))
+                    result.step("Request", r.reqinfo, generateResponse(r), "Dir List: {}".format(repr(path_lst)))
                     self.success(result)

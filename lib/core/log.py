@@ -17,6 +17,8 @@ class colors:
     cy = Fore.CYAN
     g = Fore.GREEN
     y = Fore.YELLOW
+    d = Style.DIM
+    br = Style.BRIGHT
     e = Style.RESET_ALL
     
 class logger:

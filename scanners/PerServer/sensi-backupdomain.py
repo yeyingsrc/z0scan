@@ -11,12 +11,11 @@ from api import conf, generateResponse, VulType, PLACE, PluginBase, Type
 
 
 class Z0SCAN(PluginBase):
-    name = "BackupDomain"
+    name = "sensi-backupdomain"
     desc = "Backup Files Of Each Domain"
+    
     def condition(self):
-        if 2 in conf.level:
-            return True
-        return False
+        return True
     
     def _check(self, content):
         """
@@ -72,7 +71,7 @@ class Z0SCAN(PluginBase):
                         if int(r.headers.get('Content-Length', 0)) == 0:
                             continue
                         rarsize = int(r.headers.get('Content-Length')) // 1024 // 1024
-                        result = self.new_result()
-                        result.init_info(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL, msg="File Sizes {}M".format(rarsize))
-                        result.add_detail("Request", r.reqinfo, content.decode(errors='ignore'), "File Sizes {}M".format(rarsize))
+                        result = self.generate_result()
+                        result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL, msg="File Sizes {}M".format(rarsize))
+                        result.step("Request", r.reqinfo, content.decode(errors='ignore'), "File Sizes {}M".format(rarsize))
                         self.success(result)

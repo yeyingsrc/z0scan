@@ -26,13 +26,13 @@ def fingerprint(headers, content):
     _ = False
     if 'server' in headers.keys():
         for _ in k1:
-            if search(_, headers["server"], I): return OS.LINUX, None
+            if search(_, headers["server"], I): return "LINUX", None
         
     if 'x-powered-by' in headers.keys():
         for _ in k2:
-            if search(_, headers["x-powered-by"], I): return OS.LINUX, None
+            if search(_, headers["x-powered-by"], I): return "LINUX", None
     
     if 'servlet-engine' in headers.keys():
-        if search(r"SunOS( [\d\.]+)?\;version:\1", headers["servlet-engine"], I): return OS.LINUX, None
+        if search(r"SunOS( [\d\.]+)?\;version:\1", headers["servlet-engine"], I): return "LINUX", None
 
     return None, None

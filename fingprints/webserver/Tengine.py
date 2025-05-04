@@ -3,7 +3,6 @@
 # @name:    Tengine
 
 from re import search, I, compile, error
-from lib.core.enums import WEB_SERVER
 from lib.core.common import md5
 from api import KB
 
@@ -26,8 +25,7 @@ def fingerprint(headers, content):
         _ = search(r"Tengine", headers["server"], I)
 
     if _:
-        return WEB_SERVER.TENGINE, None
-    
+        return "TENGINE", None
     return None, None
 
 
