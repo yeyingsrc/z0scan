@@ -8,7 +8,7 @@ from api import PluginBase, ResultObject, VulType, isJavaObjectDeserialization, 
 
 
 class Z0SCAN(PluginBase):
-    name = "objectdese"
+    name = "other-objectdese"
     desc = 'ObjectDeserialization Finder'
 
     def condition(self):
