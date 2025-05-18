@@ -14,6 +14,8 @@ class Z0SCAN(PluginBase):
     desc = 'SQL Error Finder'
 
     def condition(self):
+        if conf.level == 0:
+            return False
         if not self.response.waf:
             return True
         return False
@@ -75,7 +77,12 @@ class Z0SCAN(PluginBase):
     def process(self, _, _payloads):
         k, v, position = _
         for _payload in _payloads:
-            payload = self.insertPayload(k, v, position, _payload)
+            payload = self.insertPayload({
+                "key": k, 
+                "value": v, 
+                "position": position, 
+                "payload": _payload
+                })
             r = self.req(position, payload)
             if not r:
                 continue
@@ -84,15 +91,43 @@ class Z0SCAN(PluginBase):
                 match = sql_regex.search(html)
                 if match:
                     result = self.generate_result()
-                    result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload, msg="DBMS_TYPE Maybe {}; Match {}".format(dbms_type, match.group()))
-                    result.step("Request", r.reqinfo, generateResponse(r), "Dbms Maybe {}; Match {}".format(dbms_type, match.group()))
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": self.requests.url, 
+                        "vultype": VulType.SQLI, 
+                        "show": {
+                            "Position": position, 
+                            "Param": k, 
+                            "Payload": payload, 
+                            "Msg": "DBMS_TYPE Maybe {}; Match {}".format(dbms_type, match.group())
+                            }
+                        })
+                    result.step("Request1", {
+                        "request": r.reqinfo, 
+                        "response": generateResponse(r), 
+                        "desc": "Dbms Maybe {}; Match {}".format(dbms_type, match.group())
+                        })
                     self.success(result)
                     return True
             message_lists = sensitive_page_error_message_check(html)
             if message_lists:
                 result = self.generate_result()
-                result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload, msg="Receive The Error Msg {}".format(repr(message_lists)))
-                result.step("Request", r.reqinfo, generateResponse(r), "Receive Error Msg {}".format(repr(message_lists)))
+                result.main({
+                    "type": Type.REQUEST, 
+                    "url": self.requests.url, 
+                    "vultype": VulType.SQLI, 
+                    "show": {
+                        "Position": position, 
+                        "Param": k, 
+                        "Payload": payload, 
+                        "Msg": "Receive Error Msg {}".format(repr(message_lists))
+                        }
+                    })
+                result.step("Request1", {
+                    "request": r.reqinfo, 
+                    "response": generateResponse(r), 
+                    "desc": "Receive Error Msg {}".format(repr(message_lists))
+                    })
                 self.success(result)
                 break
     

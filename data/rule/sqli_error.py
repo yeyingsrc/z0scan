@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# JiuZero 2025/3/25
+# JiuZero 2025/5/15
 
 rules = {
-    "MsSQL": [
+    "Microsoft SQL": [
         r'System\.Data\.OleDb\.OleDbException', 
         r'\[SQL Server\]', 
         r'\[SQLServer JDBC Driver\]', 
         r'\[Microsoft\]\[ODBC SQL Server Driver\]', 
         r'\[SqlException', 
         r'System\.Data\.SqlClient\.SqlException', 
-        r'Unclosed quotation mark after the character string', 
         r'mssql_query\(\)', 
         r'odbc_exec\(\)', 
         r'Microsoft OLE DB Provider for',
@@ -20,7 +19,7 @@ rules = {
         r'ADODB\.Field \(0x800A0BCD\)<br>', 
         r"Procedure '[^']+' requires parameter '[^']+'", 
         r"ADODB\.Recordset'", 
-        r"Unclosed quotation mark before the character string", 
+        r"Unclosed quotation mark ", 
         r'\[Macromedia\]\[SQLServer JDBC Driver\]', 
         r'the used select statements have different number of columns',
     ],
@@ -76,7 +75,7 @@ rules = {
         r'has occurred in the vicinity of:', 
         r'A Parser Error \(syntax error\)', 
     ],
-    "Java": [
+    "Java(HQL)": [
         r'java\.sql\.SQLException', 
         r'java\.sql\.SQLSyntaxErrorException',
         r'org\.hibernate\.(query\.)?(Syntax|Query)Exception'

@@ -36,8 +36,21 @@ class Z0SCAN(PluginBase):
                 if any(keyword in decoded_str for keyword in ("System.", "Microsoft", "Type")):
                     result = self.generate_result()
                     position = PLACE.DATA if self.requests.post_data else PLACE.PARAM
-                    result.main(Type.ANALYZE, self.requests.hostname, self.requests.url, VulType.SENSITIVE, position, msg="ViewState does not have MAC validation enabled and contains sensitive information", param="__VIEWSTATE", payload=vs_value)
-                    result.step("ViewState parameter detection", self.requests.raw, generateResponse(self.response), f"Decoded pattern: {decoded_str[:200]}... (Length: {len(decoded_str)})")
+                    result.main({
+                        "type": Type.ANALYZE, 
+                        "url": self.requests.url, 
+                        "vultype": VulType.SENSITIVE, 
+                        "show": {
+                            "Position": position, 
+                            "Msg": "ViewState does not have MAC validation enabled and contains sensitive information", 
+                            "Payload": vs_value
+                            }
+                        })
+                    result.step("Request1", {
+                        "request": self.requests.raw, 
+                        "response": generateResponse(self.response), 
+                        "desc": f"Decoded pattern: {decoded_str[:200]}... (Length: {len(decoded_str)})"
+                        })
                     self.success(result)
                     return
             except Exception as e:

@@ -26,9 +26,17 @@ class Z0SCAN(PluginBase):
             messages = sensitive_page_error_message_check(r.text)
             if messages:
                 result = self.generate_result()
-                result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL)
+                result.main({
+                    "type": Type.REQUEST, 
+                    "url": r.url, 
+                    "vultype": VulType.SENSITIVE
+                    })
                 for m in messages:
                     text = m["text"]
                     _type = m["type"]
-                    result.step("Request", r.reqinfo, generateResponse(r), "Match tool:{} Match rule:{}".format(_type, text))
+                    result.step("Request1", {
+                        "request": r.reqinfo, 
+                        "response": generateResponse(r), 
+                        "desc": "Match tool:{} Match rule:{}".format(_type, text)
+                        })
                 self.success(result)

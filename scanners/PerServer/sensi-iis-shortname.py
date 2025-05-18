@@ -4,16 +4,11 @@
 
 import requests
 from urllib.parse import urlparse
-from api import VulType, PLACE, HTTPMETHOD, Type, ResultObject, PluginBase, KB, generateResponse
+from api import VulType, PLACE, HTTPMETHOD, Type, PluginBase, KB, generateResponse
 
 class Z0SCAN(PluginBase):
     name = "sensi-iis-shortname"
     desc = 'Iis File ShortName'
-
-    def __init__(self):
-        super().__init__()
-        self.existed_path = '/*~1*/a.aspx'  # 存在的文件/文件夹
-        self.not_existed_path = '/JiuZero~1*/a.aspx'  # 不存在的文件/文件夹
         
     def condition(self):
         for k, v in self.response.webserver.items():
@@ -23,25 +18,51 @@ class Z0SCAN(PluginBase):
         
     def audit(self):
         if self.condition():
-            r1 = requests.get(self.requests.netloc + self.existed_path)
+            existed_path = '/*~1*/a.aspx'
+            not_existed_path = '/JiuZer0~1*/a.aspx'
+            r1 = requests.get(self.requests.netloc + existed_path)
             status_1 = r1.status_code
-            r2 = requests.get(self.requests.netloc + self.not_existed_path)
+            r2 = requests.get(self.requests.netloc + not_existed_path)
             status_2 = r2.status_code
             if status_1 == 404 and status_2 != 404:
                 result = self.generate_result()
-                result.main(Type.REQUEST, self.requests.hostname, "{} | {}".format(r1.url, r2.url), VulType.SENSITIVE, PLACE.URL)
-                result.step("Request", r1.reqinfo, generateResponse(r1), "Request1 Status Code is 404, but request2 isn't 404")
-                result.step("Request", r2.reqinfo, generateResponse(r2), "Request1 Status Code is 404, but request2 isn't 404")
+                result.main({
+                    "type": Type.REQUEST, 
+                    "url": r1.url, 
+                    "vultype": VulType.SENSITIVE
+                    })
+                result.step("Request1", {
+                    "request": r1.reqinfo, 
+                    "response": generateResponse(r1), 
+                    "desc": "Request1 Status Code is 404"
+                    })
+                result.step("Request2", {
+                    "request": r2.reqinfo, 
+                    "response": generateResponse(r2), 
+                    "desc": "But Request2 isn't 404"
+                    })
                 self.success(result)
                 return True
-            r1 = requests.options(self.requests.netloc + self.existed_path)
+            r1 = requests.options(self.requests.netloc + existed_path)
             status_1 = r1.status_code
-            r2 = requests.options(self.requests.netloc + self.not_existed_path)
+            r2 = requests.options(self.requests.netloc + not_existed_path)
             status_2 = r2.status_code
             if status_1 == 404 and status_2 != 404:
                 result = self.generate_result()
-                result.main(Type.REQUEST, self.requests.hostname, "{} | {}".format(r1.url, r2.url), VulType.SENSITIVE, PLACE.URL)
-                result.step("Request", r1.reqinfo, generateResponse(r1), "Request1 Status Code is 404, but request2 isn't 404")
-                result.step("Request", r2.reqinfo, generateResponse(r2), "Request1 Status Code is 404, but request2 isn't 404")
+                result.main({
+                    "type": Type.REQUEST, 
+                    "url": r1.url, 
+                    "vultype": VulType.SENSITIVE
+                    })
+                result.step("Request1", {
+                    "request": r1.reqinfo, 
+                    "response": generateResponse(r1), 
+                    "desc": "Request1 Status Code is 404"
+                    })
+                result.step("Request2", {
+                    "request": r2.reqinfo, 
+                    "response": generateResponse(r2), 
+                    "desc": "But Request2 isn't 404"
+                    })
                 self.success(result)
                 return True

@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2020/3/31
-# JiuZero 2025/2/23
-
-# OS 指纹
-class OS(object):
-    LINUX = "LINUX"
-    WINDOWS = "WINDOWS"
-    DARWIN = "DARWIN"
+# JiuZero 2025/5/7
 
 # 设定注入的数据所处位置
 class PLACE:
@@ -49,15 +43,15 @@ class VulType(object):
     CMD_INNJECTION = "CMD_INNJECTION"
     # 代码注入漏洞
     CODE_INJECTION = "CODE_INJECTION"
-    # 跨站脚本攻击（XSS）
+    # 跨站脚本攻击
     XSS = "XSS"
-    # SQL注入漏洞（SQLI）
+    # SQL注入漏洞
     SQLI = "SQLI"
     # 路径遍历漏洞
     PATH_TRAVERSAL = "PATH_TRAVERSAL"
-    # XML外部实体注入（XXE）
+    # XML外部实体注入
     XXE = "XXE"
-    # 服务器端请求伪造（SSRF）
+    # 服务器端请求伪造
     SSRF = "SSRF"
     # CSRF
     CSRF = "CSRF"
@@ -65,13 +59,13 @@ class VulType(object):
     REDIRECT = "REDIRECT"
     # 弱口令
     WEAK_PASSWORD = "WEAK_PASSWORD"
-    # 回车换行注入（CRLF）
+    # 换行注入
     CRLF = "CRLF"
     # 敏感信息泄露漏洞
     SENSITIVE = "SENSITIVE"
-    # 服务器端模板注入（SSTI）
+    # 服务器端模板注入
     SSTI = 'SSTI'
-    # 未授权访问（Unauth）
+    # 未授权访问
     UNAUTH = 'UNAUTH'
     # 文件上传
     FILEUPLOAD = 'FILEUPLOAD'

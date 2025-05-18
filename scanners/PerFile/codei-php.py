@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/7/4
-# JiuZero 2025/3/4
+# JiuZero 2025/5/15
 
 import random
 import re
@@ -15,6 +15,8 @@ class Z0SCAN(PluginBase):
     desc = 'PHP Code Injection'
 
     def condition(self):
+        if conf.level == 0:
+            return False
         for k, v in self.response.programing.items():
             if k == "PHP" and not self.response.waf:
                 return True
@@ -57,21 +59,51 @@ class Z0SCAN(PluginBase):
         errors = None
         errors_raw = ()
         for _payload in _payloads:
-            payload = self.insertPayload(k, "", position, _payload)
+            payload = self.insertPayload({
+                "key": k, 
+                "position": position, 
+                "payload": _payload
+                })
             r = self.req(k, v, position, payload)
             if not r:
                 continue
             html1 = r.text
             if verify_result in html1:
                 result = self.generate_result()
-                result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload)
-                result.step("Request", r.reqinfo, generateResponse(r), "Receive {}".format(verify_result))
+                result.main({
+                    "type": Type.REQUEST, 
+                    "url": self.requests.url, 
+                    "vultype": VulType.SENSITIVE, 
+                    "show": {
+                        "Position": position, 
+                        "Param": key, 
+                        "Payload": value
+                        }
+                    })
+                result.step("Request1", {
+                    "request": r.reqinfo, 
+                    "response": generateResponse(r), 
+                    "desc": "Receive {}".format(verify_result)
+                    })
                 self.success(result)
                 break
             if re.search(regx, html1, re.I | re.S | re.M):
                 result = self.generate_result()
-                result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload)
-                result.step("Request", r.reqinfo, generateResponse(r), "Receive Return {}, maybe is the error because of payload".format(regx))
+                result.main({
+                    "type": Type.REQUEST, 
+                    "url": self.requests.url, 
+                    "vultype": VulType.SENSITIVE, 
+                    "show": {
+                        "Position": position, 
+                        "Param": key, 
+                        "Payload": value
+                        }
+                    })
+                result.step("Request1", {
+                    "request": r.reqinfo, 
+                    "response": generateResponse(r), 
+                    "desc": "Receive Return {}, maybe is the error because of payload".format(regx)
+                    })
                 self.success(result)
                 break
             if not errors:
@@ -82,9 +114,22 @@ class Z0SCAN(PluginBase):
         if errors:
             result = self.generate_result()
             key, value = errors_raw
-            result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SENSITIVE, position, param=key, payload=value)
+            result.main({
+                "type": Type.REQUEST, 
+                "url": self.requests.url, 
+                "vultype": VulType.SENSITIVE, 
+                "show": {
+                    "Position": position, 
+                    "Param": key, 
+                    "Payload": value
+                    }
+                })
             for m in errors:
                 text = m["text"]
                 _type = m["type"]
-                result.step("Request", r.reqinfo, generateResponse(r), "Match Tools:{} Match:{}".format(_type, text))
+                result.step("Request1", {
+                    "request": r.reqinfo, 
+                    "response": generateResponse(r), 
+                    "desc": "Match Tools:{} Match:{}".format(_type, text)
+                    })
             self.success(result)

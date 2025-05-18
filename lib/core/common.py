@@ -3,13 +3,38 @@
 # w8ay 2019/6/28
 # JiuZero 2025/3/24
 
-import base64, copy, hashlib, json, os, random, re, string #sys
+import base64, copy, hashlib, json, os, random, re, string, struct, requests, sys, socket, ipaddress
 from urllib.parse import urlparse, urljoin, quote, urlunparse
-import requests, sys
 from colorama.ansi import code_to_chars
-
 from lib.core.enums import PLACE, POST_HINT
 from lib.core.settings import DEFAULT_GET_POST_DELIMITER, DEFAULT_COOKIE_DELIMITER
+from fake_useragent import UserAgent
+
+def is_ipaddr(host):
+    try:
+        ipaddress.ip_address(str(host))
+        return True
+    except Exception as ex:
+        return False
+
+def random_headers():
+    HEADERS = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'User-Agent': "",
+        'Referer': "",
+        'X-Forwarded-For': "",
+        'X-Real-IP': "",
+        'Connection': 'keep-alive',
+    }
+    ua = UserAgent()
+    key = random.random() * 20
+    referer = ''.join([random.choice(string.ascii_letters + string.digits) for _ in range(int(key))])
+    referer = 'www.' + referer.lower() + '.com'
+    ip = socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff)))
+    HEADERS["User-Agent"] = ua.random
+    HEADERS["Referer"] = referer
+    HEADERS["X-Forwarded-For"] = HEADERS["X-Real-IP"] = ip
+    return HEADERS
 
 def get_parent_paths(path, domain=True):
     '''

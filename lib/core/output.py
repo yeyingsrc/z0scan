@@ -12,6 +12,7 @@ from lib.core.common import md5
 from lib.core.data import KB, path, conf
 from lib.core.log import logger, colors
 from lib.core.settings import VERSION
+from urllib.parse import urlparse
 
 class OutPut(object):
 
@@ -91,18 +92,20 @@ class OutPut(object):
         [TIME][INFO] <www.baidu.com> | [SCAN_NAME][SCAN_TYPE]
         URL : http://www.baidu.com/a/test?id=1
         Vultype : SQL
-        Position : Params > id
+        Position : Params
+        Param :  id
         Payload : ' and 1=2--+
         ....
         """
-        msg = "<{}{}{}> | [{}{}{}] [{}{}{}]\n".format(colors.m, output["hostname"], colors.e, colors.m, output["type"], colors.e, colors.m, output["name"], colors.e)
-        msg += "  {}URL{}      : {}\n".format(colors.cy, colors.e, output["url"])
-        msg += "  {}Vultype{}  : {}\n".format(colors.cy, colors.e, output["vultype"])
-        msg += "  {}Position{} : {}".format(colors.cy, colors.e, output["position"])
-        if output["param"]: msg += " > {k}\n".format(k=output["param"])
-        else: msg += "\n"
-        if output["payload"]: msg += "  {}Payload{}  : {}\n".format(colors.cy, colors.e, output["payload"])
-        if output["msg"]: msg += "  {}Msg{}      : {}".format(colors.cy, colors.e, output["msg"])
+        msg = "<{}{}{}> | [{}{}{}] [{}{}{}]\n".format(colors.m, str(output["hostname"]), colors.e, colors.m, output["type"], colors.e, colors.m, output["name"], colors.e)
+        msg += "{}URL{} : {}\n".format(colors.cy, colors.e, output["url"])
+        msg += "{}Vultype{} : {}\n".format(colors.cy, colors.e, output["vultype"])
+        if output["show"]:
+            if isinstance(output["show"], dict):
+                for key, value in output["show"].items():
+                    msg += "{}{}{} : {}\n".format(colors.cy, key, colors.e, value)
+            else:
+                logger.warning("`show` need to be a dict, but it's {}".format(type(output["show"])))
         self.lock_print.acquire()
         logger.info(msg)
         self.lock_print.release()
@@ -114,25 +117,40 @@ class ResultObject(object):
         self.path = baseplugin.path # 插件路径
         self.detail = collections.OrderedDict()
 
-    def main(self, type: str, hostname: str, url: str, vultype: str, position: str, param=None, payload=None, msg=None):
-        self.type = type
-        self.hostname = hostname
-        self.url = url
-        self.vultype = vultype
-        self.position = position
-        self.param = param
-        self.payload = payload
-        self.msg = msg
-
+    def main(self, datas):
+        if isinstance(datas, dict):
+            self.type = datas.get("type", None)
+            self.url = datas.get("url", None)
+            if self.url:
+                try:
+                    netloc = urlparse(self.url).netloc.split(":")
+                except:
+                    netloc = urlparse(self.url).netloc
+                self.hostname = netloc[0] if isinstance(netloc, list) else netloc
+            else: self.hostname = None
+            self.vultype = datas.get("vultype", None)
+            self.show = datas.get("show", None)
+        else:
+            logger.warning("`main` need to be a dict, but it's {}".format(type(datas)))
+            raise
     # 漏洞验证过程的细节展示
-    def step(self, name: str, request: str, response: str, msg: str):
-        if name not in self.detail:
-            self.detail[name] = []
-        self.detail[name].append({
-            "request": request,#请求
-            "response": response,#响应
-            "msg": msg,#说明
-        })
+    def step(self, name: str, datas):
+        if isinstance(datas, dict):
+            position = datas.get("position")
+            request = datas.get("request")
+            response = datas.get("response")
+            desc = datas.get("desc")
+            if name not in self.detail:
+                self.detail[name] = []
+            self.detail[name].append({
+                "position": position,#功能点位置
+                "request": request,#请求
+                "response": response,#响应
+                "desc": desc,#说明
+            })
+        else:
+            logger.warning("`datas` in `step` need to be a dict, but it's {}".format(type(datas)))
+            raise
 
     def output(self):
         self.createtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -143,10 +161,7 @@ class ResultObject(object):
             "hostname": self.hostname,#域名
             "url": self.url,#URL
             "vultype": self.vultype,#漏洞类型
-            "position": self.position,#漏洞位置
-            "param": self.param,#参数
-            "payload": self.payload,#Payload
-            "msg": self.msg,#备注信息
             "createtime": self.createtime,#时间
-            "detail": self.detail#漏洞检测过程
+            "detail": self.detail,#漏洞检测过程
+            "show": self.show,#展示关键信息
         }

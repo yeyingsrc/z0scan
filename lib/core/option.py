@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/6/29
-# JiuZero 2025/5/1
+# JiuZero 2025/5/15
 
 import os
 import threading
 import time
 from queue import Queue
-
+import config
 from colorama import init as cinit
-
-from config import EXCLUDES, THREAD_NUM, LEVEL, \
-    TIMEOUT, \
-    RETRY, PROXY_CONFIG, PROXY_CONFIG_BOOL, DISABLE, ABLE, XSS_LIMIT_CONTENT_TYPE
 from lib.core.common import random_UA, ltrim
 from lib.core.data import path, KB, conf
 from lib.core.log import dataToStdout, logger, colors
@@ -23,7 +19,8 @@ from lib.core.output import OutPut
 from lib.core.settings import banner, DEFAULT_USER_AGENT
 from lib.core.spiderset import SpiderSet
 from thirdpart.console import getTerminalSize
-from thirdpart.requests import patch_all
+from lib.patch.requests_patch import patch_all
+from lib.patch.ipv6_patch import ipv6_patch
 
 
 def setPaths(root):
@@ -53,6 +50,7 @@ def initKb():
     KB.limit = False
     KB.dicts = dict()
     KB.pause = False
+    KB.esc_triggered = False
 
 def initPlugins():
     # 加载检测插件
@@ -112,52 +110,26 @@ def initPlugins():
             try:
                 with open(file, 'r', encoding='utf-8') as f:
                     content = [line.strip() for line in f.readlines() if line.strip()]
+                    # TODO: replace
                     KB.dicts[name] = content
                     num += 1
             except Exception as e:
                 logger.warning(f'Error loading dict {file}: {str(e)}')
     logger.info('Load fuzz dicts: {}{}{}'.format(colors.y, num, colors.e))
 
-def _init_conf():
-    conf.version = None
-    conf.debug = False
-    conf.level = LEVEL
-    conf.server_addr = None
-    conf.url = None
-    conf.url_file = None
-    conf.proxy = PROXY_CONFIG
-    conf.proxy_config_bool = PROXY_CONFIG_BOOL
-    conf.timeout = TIMEOUT
-    conf.retry = RETRY
-    conf.html = False
-    conf.json = False
-    conf.random_agent = False
-    conf.agent = DEFAULT_USER_AGENT
-    conf.threads = THREAD_NUM
-    conf.disable = DISABLE
-    conf.able = ABLE
-    conf.excludes = EXCLUDES
-    conf.ignore_waf = False
-    conf.scan_cookie = False
-    conf.XSS_LIMIT_CONTENT_TYPE = XSS_LIMIT_CONTENT_TYPE
 
-
-def _merge_options(input_options):
-    """
-    Merge command line options with configuration file and default options.
-    """
-    if hasattr(input_options, "items"):
-        input_options_items = input_options.items()
+def _merge_options(cmdline):
+    # 命令行配置 将覆盖 config配置
+    if hasattr(cmdline, "items"):
+        cmdline_items = cmdline.items()
     else:
-        input_options_items = input_options.__dict__.items()
-
-    for key, value in input_options_items:
-        # if key not in conf or not value:
-        if key not in conf:
-            conf[key] = value
-            continue
-        if value:
-            conf[key] = value
+        cmdline_items = cmdline.__dict__.items()
+    for key, value in vars(config).items():
+        conf[key.lower()] = value
+        continue
+    for key, value in cmdline_items:
+        conf[key] = value
+        continue
 
 
 def _set_conf():
@@ -167,12 +139,11 @@ def _set_conf():
 
     # server_addr
     if isinstance(conf["server_addr"], str):
-        defaulf = 5920
         if ":" in conf["server_addr"]:
             splits = conf["server_addr"].split(":", 2)
             conf["server_addr"] = tuple([splits[0], int(splits[1])])
         else:
-            conf["server_addr"] = tuple([conf["server_addr"], defaulf])
+            conf["server_addr"] = tuple([conf["server_addr"], conf.DEFAULT_PROXY_PORT])
 
     # threads
     conf["threads"] = int(conf["threads"])
@@ -188,6 +159,8 @@ def _set_conf():
     # user-agent
     if conf.random_agent:
         conf.agent = random_UA()
+    else:
+        conf.agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101'
 
 
 def _init_stdout():
@@ -206,13 +179,11 @@ def _init_stdout():
     if conf.html:
         logger.info("Html will be saved in '{}'".format(KB.output.get_html_filename()))
     logger.info("Result will be saved in '{}'".format(KB.output.get_filename()))
-
-
+    
 def init(root, cmdline):
     cinit(autoreset=True)
     setPaths(root)
     dataToStdout(banner)
-    _init_conf()
     _merge_options(cmdline)
     _set_conf()
     initKb()
@@ -220,3 +191,4 @@ def init(root, cmdline):
     initdb(root)
     _init_stdout()
     patch_all()
+    ipv6_patch()

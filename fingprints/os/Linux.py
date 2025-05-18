@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 
 from re import search, I, compile, error
-from lib.core.enums import OS
 
 def _prepare_pattern(pattern):
     """
@@ -22,17 +21,16 @@ k2 = [
     "Ubuntu", r"SUSE(?:/?\s?-?([\d.]+))?\;version:\1", "Scientific Linux", "Red Hat", "CentOS", "gentoo", r"(?:Debian|dotdeb|(sarge|etch|lenny|squeeze|wheezy|jessie))\;version:\1"
 ]
 
-def fingerprint(headers, content):
-    _ = False
+def fingerprint(suffix, headers, content):
     if 'server' in headers.keys():
         for _ in k1:
-            if search(_, headers["server"], I): return "LINUX", None
-        
+            if search(_, headers["server"], I):
+                return "LINUX", None
     if 'x-powered-by' in headers.keys():
         for _ in k2:
-            if search(_, headers["x-powered-by"], I): return "LINUX", None
-    
+            if search(_, headers["x-powered-by"], I):
+                return "LINUX", None
     if 'servlet-engine' in headers.keys():
-        if search(r"SunOS( [\d\.]+)?\;version:\1", headers["servlet-engine"], I): return "LINUX", None
-
+        if search(r"SunOS( [\d\.]+)?\;version:\1", headers["servlet-engine"], I):
+            return "LINUX", None
     return None, None

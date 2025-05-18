@@ -15,10 +15,15 @@ def _prepare_pattern(pattern):
         return compile(r'(?!x)x')
 
 
-def fingerprint(headers, content):
-    _ = False
+def fingerprint(suffix, headers, content):
+    if suffix == ".jsp" or suffix == ".do" or suffix == ".action":
+        return "JAVA", None
     if 'set-cookie' in headers.keys():
-        _ = search(r"JSESSIONID", headers["set-cookie"], I)
-
-    if _: return "JAVA", None
+        if search(r"JSESSIONID", headers["set-cookie"], I):
+            return "JAVA", None
+    for item in headers.items():
+        if search(r'Java|Servlet|JSP|JBoss|Glassfish|Oracle|JRE|JDK|JSESSIONID', str(item)):
+            return "JAVA", None
+        elif search(r'\.jsp$|\.jspx$|.do$|\.wss$|\.action$', content):
+            return "JAVA", None
     return None, None

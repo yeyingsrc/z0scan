@@ -32,16 +32,6 @@ def CheckWaf(self):
             self.response.waf = str(history1[0])
             return
     # 不存在WAF但本次启动后没有检测（未知情况）
-    rand_param = '/?' + ''.join(random.choices(string.ascii_lowercase, k=4)) + '='
-    payload = "UNION ALL SELECT 1,'<script>alert(\"XSS\")</script>' FROM information_schema WHERE --/**/ EXEC xp_cmdshell('cat ../../../etc/passwd')#"
-    try:
-        r1 = requests.get(self.requests.netloc, timeout=conf.timeout)
-        r2 = requests.get(self.requests.netloc + rand_param + quote(payload), timeout=conf.timeout)
-    # 超时与连接问题很可能产生于WAF
-    except (TimeoutError, ConnectionError, Exception) as e:
-        raise
-        deal(self, True)
-        return
     # 尝试指纹匹配
     for i in rules:
         name, method, position, regex = i.split('|')
@@ -56,10 +46,18 @@ def CheckWaf(self):
                 logger.warning("<{}{}{}> Protected by {}".format(colors.m, self.requests.hostname, colors.e, name))
                 self.response.waf = name
                 return
+    rand_param = '/?' + ''.join(random.choices(string.ascii_lowercase, k=4)) + '='
+    payload = "UNION ALL SELECT 1,'<script>alert(\"XSS\")</script>' FROM information_schema WHERE --/**/ EXEC xp_cmdshell('cat ../../../etc/passwd')#"
+    try:
+        r1 = requests.get(self.requests.netloc, timeout=conf.timeout)
+        r2 = requests.get(self.requests.netloc + rand_param + quote(payload), timeout=conf.timeout)
+    # 超时与连接问题很可能产生于WAF
+    except (TimeoutError, ConnectionError, Exception) as e:
+        deal(self, True)
+        return
     # 页面相似度判断
-    similarity = difflib.SequenceMatcher(r1, r2).ratio()
+    similarity = difflib.SequenceMatcher(r1.text, r2.text).ratio()
     if similarity < 0.5:
-        print(1)
         deal(self, True)
         return
     else:

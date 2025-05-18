@@ -29,6 +29,14 @@ class Z0SCAN(PluginBase):
             ContentType = r.headers.get("Content-Type", '')
             if 'html' in ContentType and "allow" in r.text:
                 result = self.generate_result()
-                result.main(Type.Request, self.requests.hostname, r.url, VulType.OTHER, PLACE.URL)
-                result.step("Request", r.reqinfo, generateResponse(r), "Content-Type:{}".format(ContentType))
+                result.main({
+                    "type": Type.REQUEST, 
+                    "url": r.url, 
+                    "vultype": VulType.OTHER
+                    })
+                result.step("Request1", {
+                    "request": r.reqinfo, 
+                    "response": generateResponse(r), 
+                    "desc": "Content-Type:{}".format(ContentType)
+                    })
                 self.success(result)

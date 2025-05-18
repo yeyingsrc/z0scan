@@ -42,6 +42,17 @@ class Z0SCAN(PluginBase):
                                 path_lst.append(path)
                 if path_lst:
                     result = self.generate_result()
-                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.OTHER, PLACE.URL, msg="Dir List: {}".format(repr(path_lst)))
-                    result.step("Request", r.reqinfo, generateResponse(r), "Dir List: {}".format(repr(path_lst)))
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": r.url, 
+                        "vultype": VulType.OTHER, 
+                        "show": {
+                            "Msg": "Dir List: {}".format(repr(path_lst))
+                            }
+                        })
+                    result.step("Request1", {
+                        "request": r.reqinfo, 
+                        "response": generateResponse(r), 
+                        "desc": "Dir List: {}".format(repr(path_lst))
+                        })
                     self.success(result)

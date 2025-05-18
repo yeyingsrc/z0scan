@@ -55,7 +55,7 @@ from lib.core.data import path, conf, KB
 from lib.core.enums import HTTPMETHOD
 from lib.core.settings import notAcceptedExt
 from lib.parse.parse_request import FakeReq
-from lib.parse.parse_responnse import FakeResp
+from lib.parse.parse_response import FakeResp
 from socket import socket
 import socks as socks5
 

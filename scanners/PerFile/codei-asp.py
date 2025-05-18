@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/7/4
-# JiuZero 2025/3/25
+# JiuZero 2025/5/15
 
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from api import PluginBase, conf, ResultObject, VulType, generateResponse, Type, logger
+from api import PluginBase, conf, VulType, generateResponse, Type, logger
 
 
 class Z0SCAN(PluginBase):
@@ -14,6 +14,8 @@ class Z0SCAN(PluginBase):
     desc = 'ASP Code Injection'
 
     def condition(self):
+        if conf.level == 0:
+            return False
         for k, v in self.response.programing.items():
             if k == "ASP" and not self.response.waf:
                 return True
@@ -50,15 +52,32 @@ class Z0SCAN(PluginBase):
     def process(self, _, _payloads, randint3):
         k, v, position = _
         for _payload in _payloads:
-            payload = self.insertPayload(k, "", position, _payload)
+            payload = self.insertPayload({
+                "key": k,
+                "payload": _payload, 
+                "position": position, 
+                })
             r = self.req(position, payload)
             if not r:
                 continue
             html = r.text
             if str(randint3) in html:
-                result = ResultObject(self)
-                result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.CODE_INNJECTION, position, param=k, payload=payload)
-                result.step("Request", r.reqinfo, generateResponse(r), "Match Int {}".format(randint3))
+                result = self.generate_result()
+                result.main({
+                    "type": Type.REQUEST, 
+                    "url": r.url, 
+                    "vultype": VulType.CODE_INNJECTION, 
+                    "show": {
+                        "Position": position, 
+                        "Param": k, 
+                        "payload": payload, 
+                        }
+                    })
+                result.step("Request1", {
+                    "request": r.reqinfo, 
+                    "response": generateResponse(r), 
+                    "desc": "Match Int {}".format(randint3)
+                    })
                 self.success(result)
                 return True
     

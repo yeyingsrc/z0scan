@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# @Time    : 2025/2/9
-# @Author  : DeepSeek
+# DeepSeek 2025/2/9
 # Fix by Jiuz0scan
-# @File    : compare.py
 
 def compare(min_str, max_str, version_str):
     if not version_str:

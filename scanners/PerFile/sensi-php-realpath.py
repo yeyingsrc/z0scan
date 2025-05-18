@@ -16,6 +16,8 @@ class Z0SCAN(PluginBase):
     desc = 'Php Real Path Finder'
     
     def condition(self):
+        if conf.level == 0:
+            return False
         for k, v in self.response.programing.items():
             if k == "PHP":
                 return True
@@ -44,12 +46,29 @@ class Z0SCAN(PluginBase):
     def process(self, _):
         k, v, position = _
         _k = k + "[]"
-        payload = self.insertPayload(_k, v, position, "")
+        payload = self.insertPayload({
+            "key": _k, 
+            "value": v, 
+            "position": position,
+            })
         r = self.req(position, payload)
         if "Warning" in r.text and "array given in " in r.text:
             path = get_middle_text(r.text, 'array given in ', ' on line')
             result = self.generate_result()
-            result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SENSITIVE, position, msg="PATH Sensitive {p}".format(p=path), param=_k)
-            result.step("Request", r.reqinfo, generateResponse(r), "")
+            result.main({
+                "type": Type.REQUEST, 
+                "url": self.requests.url, 
+                "vultype": VulType.SENSITIVE, 
+                "show": {
+                    "Position": position, 
+                    "Msg": "{}".format(path), 
+                    "Param": _k
+                    }
+                })
+            result.step("Request1", {
+                "request": r.reqinfo, 
+                "response": generateResponse(r), 
+                "desc": "{}".format(path)
+                })
             self.success(result)
-            return True
+            return

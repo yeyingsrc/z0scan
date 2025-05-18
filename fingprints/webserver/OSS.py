@@ -18,7 +18,7 @@ def _prepare_pattern(pattern):
 
 keys = ['aliyunoss', 'amazons3', 'minio', 'ceph']
 
-def fingerprint(headers, content):
+def fingerprint(suffix, headers, content):
     if 'server' in headers.keys():
         for _ in keys:
             if search(_, headers["server"], I):

@@ -15,15 +15,18 @@ def _prepare_pattern(pattern):
         return compile(r'(?!x)x')
 
 
-def fingerprint(headers, content):
-    _ = False
-    _ = _prepare_pattern(r"\.php(?:$|\?)").search(content)  # url
+def fingerprint(suffix, headers, content):
+    if suffix == ".php" or suffix == ".phtml":
+        return "PHP", None
+    if _prepare_pattern(r"\.php(?:$|\?)").search(content):
+        return "PHP", None
     if 'server' in headers.keys():
-        _ = search(r"php/?([\d.]+)?\;version:\1", headers["server"], I)
+        if search(r"php/?([\d.]+)?\;version:\1", headers["server"], I):
+            return "PHP", None
     if 'set-cookie' in headers.keys():
-        _ = search(r"PHPSESSID", headers["set-cookie"], I)
+        if search(r"PHPSESSID", headers["set-cookie"], I):
+            return "PHP", None
     if 'x-powered-by' in headers.keys():
-        _ = search(r"php/?([\d.]+)?\;version:\1", headers["x-powered-by"], I)
-
-    if _: return "PHP", None
+        if search(r"php/?([\d.]+)?\;version:\1", headers["x-powered-by"], I):
+            return "PHP", None
     return None, None

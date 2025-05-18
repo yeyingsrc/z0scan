@@ -49,6 +49,14 @@ class Z0SCAN(PluginBase):
                     md5_value = md5(req.content)
                     if md5_value in md5_list:
                         result = self.generate_result()
-                        result.main(Type.Request, self.requests.netloc, req.url, VulType.XSS, PLACE.URL)
-                        result.step("Request", req.reqinfo, generateResponse(req), "Match md5: {}".format(md5_value))
+                        result.main({
+                            "type": Type.REQUEST, 
+                            "url": req.url, 
+                            "vultype": VulType.XSS
+                            })
+                        result.step("Request1", {
+                            "request": req.reqinfo, 
+                            "response": generateResponse(req), 
+                            "desc": "Match md5: {}".format(md5_value)
+                            })
                         self.success(result)

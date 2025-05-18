@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 
 from re import search, I, compile, error
-from lib.core.enums import OS
 
 def _prepare_pattern(pattern):
     """
@@ -16,12 +15,11 @@ def _prepare_pattern(pattern):
         return compile(r'(?!x)x')
 
 
-def fingerprint(headers, content):
-    _ = False
+def fingerprint(suffix, headers, content):
     if 'server' in headers.keys():
-        _ = search(r"Darwin", headers["server"], I)
+        if search(r"Darwin", headers["server"], I):
+            return "DARWIN", None
     if 'x-powered-by' in headers.keys():
-        _ = search(r"Darwin", headers["x-powered-by"], I)
-
-    if _: return "DARWIN", None
+        if search(r"Darwin", headers["x-powered-by"], I):
+            return "DARWIN", None
     return None, None

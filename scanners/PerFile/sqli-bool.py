@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/6/30
-# JiuZero 2025/4/12
+# JiuZero 2025/5/11
 
 import difflib
 import requests
@@ -22,18 +22,18 @@ class Z0SCAN(PluginBase):
         # 设置页面相似度的上下界
         self.UPPER_RATIO_BOUND = 0.98
         self.LOWER_RATIO_BOUND = 0.02
-
         # 设置页面相似度的差异容忍度
         self.DIFF_TOLERANCE = 0.05
         # 设置常量相似度阈值
         self.CONSTANT_RATIO = 0.9
-
         # 设置重试次数
         self.retry = 3
         # 存储动态内容的标记
         self.dynamic = []
     
     def condition(self):
+        if conf.level == 0:
+            return False
         return True
     
     def findDynamicContent(self, firstPage, secondPage):
@@ -41,12 +41,22 @@ class Z0SCAN(PluginBase):
         if ret:
             self.dynamic.extend(ret)
 
-    def inject(self, k, v, positon, payload_false, payload_true):
+    def inject(self, k, v, position, payload_false, payload_true):
         is_inject = False
-        payload = self.insertPayload(k, v, positon, payload_false)
-        r2 = self.req(positon, payload)
-        payload = self.insertPayload(k, v, positon, payload_true)  
-        r = self.req(positon, payload)
+        payload = self.insertPayload({
+                "key": k, 
+                "value": v, 
+                "position": position, 
+                "payload": payload_false
+                })
+        r2 = self.req(position, payload)
+        payload = self.insertPayload({
+                "key": k, 
+                "value": v, 
+                "position": position, 
+                "payload": payload_true
+                })
+        r = self.req(position, payload)
         
         truePage = removeDynamicContent(r.text, self.dynamic)
         falsePage = removeDynamicContent(r2.text, self.dynamic)
@@ -86,7 +96,7 @@ class Z0SCAN(PluginBase):
                 "response": generateResponse(r),
                 "key": k,
                 "payload": payload_true,
-                "position": positon,
+                "position": position,
                 "desc": "The similarity between the true request packet and the original web page:{}".format(ratio_true)
             })
             ret.append({
@@ -94,7 +104,7 @@ class Z0SCAN(PluginBase):
                 "response": generateResponse(r2),
                 "key": k,
                 "payload": payload_false,
-                "position": positon,
+                "position": position,
                 "desc": "The similarity between the False request packet and the original web page:{}".format(ratio_false)
             })
             return ret
@@ -136,10 +146,12 @@ class Z0SCAN(PluginBase):
                     try:
                         future.result()
                     except Exception as task_e:
+                        raise
                         logger.error(f"Task failed: {task_e}", origin=self.name)
             except KeyboardInterrupt:
                 executor.shutdown(wait=False)
             except Exception as e:
+                raise
                 logger.error(f"Unexpected error: {e}", origin=self.name)
                 executor.shutdown(wait=False)
                     
@@ -155,7 +167,7 @@ class Z0SCAN(PluginBase):
             ['") AND True#', '") AND False#'], 
         ]
         if conf.level == 3:
-            payloads1 = [
+            payloads += [
                 ["''AND''True", "''AND''False"],
                 ['""AND True#""', '""AND False#""'],
             ]
@@ -173,7 +185,12 @@ class Z0SCAN(PluginBase):
                     ["-0", "-10000"],
                 ]
                 if conf.level >= 2:
-                   payloads += [["/1", "/0"],]
+                    payloads += [["/1", "/0"],]
+                if conf.level == 3:
+                    payloads += [
+                        ["'/'1", "'/'0"], 
+                        ['"/"1', '"/"0'],
+                    ]
             else:
                 return
         for payload in payloads:
@@ -184,10 +201,29 @@ class Z0SCAN(PluginBase):
                 ret2 = self.inject(k, v, position, payload_false, payload_true)
                 if ret2:
                     result = self.generate_result()
-                    result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.SQLI, position, param=k, payload=payload)
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": self.requests.url, 
+                        "vultype": VulType.SQLI, 
+                        "show": {
+                            "Position": position, 
+                            "Param": k, 
+                            "Payload": payload,
+                        }
+                    })
                     for values in ret1:
-                        result.step("The First Bool Injection Test", values["request"], values["response"], values["desc"])
+                        result.step("Request1", {
+                            "position": position,
+                            "request": values["request"], 
+                            "response": values["response"], 
+                            "desc": values["desc"],
+                        })
                     for values in ret2:
-                        result.step("The Second Bool Injection Test", values["request"], values["response"], values["desc"])
+                        result.step("Request2", {
+                            "position": position, 
+                            "request": values["request"], 
+                            "response": values["response"], 
+                            "desc": values["desc"],
+                        })
                     self.success(result)
                     return True

@@ -13,7 +13,7 @@ import re
 from copy import deepcopy
 from pyjsparser import parse
 
-from api import random_str, VulType, PLACE, Type, ResultObject, PluginBase, conf
+from api import random_str, VulType, PLACE, Type, PluginBase, conf
 from lib.helper.helper_sensitive import sensitive_bankcard, sensitive_idcard, sensitive_phone, sensitive_email
 from lib.helper.jscontext import analyse_Literal
 
@@ -98,8 +98,19 @@ class Z0SCAN(PluginBase):
         result2 = self.check_sentive_content(req.text)
         if not result2:
             return
-        result = ResultObject(self)
-        result.main(Type.REQUEST, self.requests.hostname, req.url, VulType.SENSITIVE, PLACE.PARAMS, msg="Match Sensitive Info {}".format(repr(result2)))
-        result.step("Request", self.requests.raw, self.response.raw, "Match Sensitive Info {}".format(repr(result2)))
+        result = self.generate_result()
+        result.main({
+            "type": Type.REQUEST, 
+            "url": req.url, 
+            "vultype": VulType.SENSITIVE, 
+            "show": {
+                "Msg": "{}".format(repr(result2))
+                }
+            })
+        result.step("Request1", {
+            "request": self.requests.raw, 
+            "response": self.response.raw, 
+            "desc": "{}".format(repr(result2))
+            })
         self.success(result)
-        return True
+        return

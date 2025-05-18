@@ -16,7 +16,7 @@ def _prepare_pattern(pattern):
     except error as e:
         return compile(r'(?!x)x')
 
-def fingerprint(headers, content):
+def fingerprint(suffix, headers, content):
     version = None
     _ = False
     if 'server' in headers.keys():

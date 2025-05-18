@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/6/28
-# JiuZero 2025/3/25
+# JiuZero 2025/5/12
 
 import copy
 import platform
 import socket
 import sys, re
 import traceback
-import config, copy
+import copy
 from urllib.parse import quote
 
 import requests
@@ -25,7 +25,7 @@ from lib.core.log import logger
 from lib.core.exection import PluginCheckError
 from lib.core.output import ResultObject
 from lib.parse.parse_request import FakeReq
-from lib.parse.parse_responnse import FakeResp
+from lib.parse.parse_response import FakeResp
 from lib.core.common import splitUrlPath, updateJsonObjectFromStr
 from lib.core.enums import POST_HINT, PLACE, HTTPMETHOD
 from requests.adapters import HTTPAdapter
@@ -81,8 +81,8 @@ class PluginBase(object):
         if conf.scan_cookie and self.requests.cookies:
             for k, v in self.requests.cookies.items():
                 iterdatas.append([k, v, PLACE.COOKIE])
-        if any(re.search(r'/{}[-_/]([^-_/?#&=]+)'.format(re.escape(k)), self.requests.url, re.I) for k in config.PSEUDO_STATIC_KEYWORDS):
-            for k in config.PSEUDO_STATIC_KEYWORDS:
+        if any(re.search(r'/{}[-_/]([^-_/?#&=]+)'.format(re.escape(k)), self.requests.url, re.I) for k in conf.pseudo_static_keywords):
+            for k in conf.pseudo_static_keywords:
                 pattern = re.compile(r'/{}[-_/]([^-_/?#&=]+)'.format(re.escape(k)), re.I)
                 match = pattern.search(self.requests.url)
                 if match:
@@ -90,23 +90,27 @@ class PluginBase(object):
                     iterdatas.append([k, v, PLACE.URL])
         return iterdatas
 
-    def insertPayload(self, k, v, positon, payload, urlsafe='/\\'):
-        if positon == PLACE.DATA:
+    def insertPayload(self, datas: dict):
+        key = str(datas.get("key", ""))
+        value = str(datas.get("value", ""))
+        payload = str(datas.get("payload", ""))
+        position = str(datas.get("position", ""))
+        if position == PLACE.DATA:
             data = copy.deepcopy(self.requests.post_data)
-            data[k] = v + payload
+            data[key] = value + payload
             return data
-        elif positon == PLACE.PARAM:
+        elif position == PLACE.PARAM:
             params = copy.deepcopy(self.requests.params)
-            params[k] = v + payload
+            params[key] = value + payload
             return params
-        elif positon == PLACE.COOKIE:
+        elif position == PLACE.COOKIE:
             cookies = copy.deepcopy(self.requests.cookies)
-            cookies[k] = v + payload
+            cookies[key] = value + payload
             return cookies
-        elif positon == PLACE.URL:
+        elif position == PLACE.URL:
             # 向伪静态注入点插入的未编码的Payload可能导致网站报错
             payload = parse.quote(payload)
-            url = re.sub(r'/{}[-_/]([^-_/?#&=]+)'.format(re.escape(k), re.escape(v)),r'/{}[-_/]([^-_/?#&=]+)'.format(k, parse.quote(v + payload)), self.requests.url)
+            url = re.sub(r'/{}[-_/]([^-_/?#&=]+)'.format(re.escape(key), re.escape(value)),r'/{}[-_/]([^-_/?#&=]+)'.format(key, parse.quote(value + payload)), self.requests.url)
             return url
 
     def req(self, position, payload):

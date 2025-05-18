@@ -5,7 +5,7 @@
 import requests
 from urllib.parse import urlparse
 
-from api import generateResponse, VulType, PLACE, HTTPMETHOD, ResultObject, PluginBase, KB, Type
+from api import generateResponse, VulType, PLACE, HTTPMETHOD, PluginBase, KB, Type
 
 
 class Z0SCAN(PluginBase):
@@ -27,6 +27,14 @@ class Z0SCAN(PluginBase):
             r = requests.get(self.requests.netloc + self.clrf_path, verify=False)
             if "Detectify" in r.headers:
                 result = self.generate_result()
-                result.main(Type.Request, self.requests.hostname, r.url, VulType.CRLF, PLACE.URL)
-                result.step("Request", r.reqinfo, generateResponse(r), "Match Keyword: Detectify")
+                result.main({
+                    "type": Type.REQUEST, 
+                    "url": r.url, 
+                    "vultype": VulType.CRLF
+                    })
+                result.step("Request1", {
+                    "request": r.reqinfo, 
+                    "response": generateResponse(r), 
+                    "desc": "Match Keyword: Detectify"
+                    })
                 self.success(result)

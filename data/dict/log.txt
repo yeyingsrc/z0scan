@@ -11,5 +11,4 @@ server.log
 change.log
 config.log
 access.log
-changes.log
-changelog.log
+admin.log

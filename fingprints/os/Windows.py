@@ -4,9 +4,6 @@
 
 from re import search, I, compile, error
 
-from lib.core.enums import OS
-
-
 def _prepare_pattern(pattern):
     """
     Strip out key:value pairs from the pattern and compile the regular
@@ -20,9 +17,11 @@ def _prepare_pattern(pattern):
 
 keys = [ r"Win32|Win64", r"WinCE" ]
 
-def fingerprint(headers, content):
-    _ = False
+def fingerprint(suffix, headers, content):
+    if suffix == ".asp" or suffix == ".aspx":
+        return "WINDOWS", None
     if 'server' in headers.keys():
         for _ in keys:
-            if search(_, headers["server"], I): return "WINDOWS", None
+            if search(_, headers["server"], I):
+                return "WINDOWS", None
     return None, None

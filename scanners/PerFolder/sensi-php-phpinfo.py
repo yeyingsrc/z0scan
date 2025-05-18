@@ -25,10 +25,17 @@ class Z0SCAN(PluginBase):
             for phpinfo in KB.dicts["phpinfo"]:
                 testURL = self.requests.netloc.rstrip("/") + "/" + phpinfo
                 r = requests.get(testURL, headers=headers)
-                flag = "<title>phpinfo()</title>"
-                if flag in r.text:
+                if "<title>phpinfo()" in r.text or "php_version" in r.text:
                     info = get_phpinfo(r.text)
                     result = self.generate_result()
-                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL)
-                    result.step("Request", r.reqinfo, generateResponse(r), '\n'.join(info))
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": r.url, 
+                        "vultype": VulType.SENSITIVE
+                        })
+                    result.step("Request1", {
+                        "request": r.reqinfo, 
+                        "response": generateResponse(r), 
+                        "desc": ''.join(info)
+                        })
                     self.success(result)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/7/4
-# JiuZero 2025/3/30
+# JiuZero 2025/5/15
 
 import copy
 import random
@@ -19,6 +19,8 @@ class Z0SCAN(PluginBase):
     desc = 'Cmd Injection'
 
     def condition(self):
+        if conf.level == 0:
+            return False
         if not self.response.waf and self.requests.suffix in acceptedExt:
             return True
         return False
@@ -77,7 +79,12 @@ class Z0SCAN(PluginBase):
             payloads[reverse_payload] = []
         k, v, position = _
         for _payload, rules in payloads.items():
-            payload = self.insertPayload(k, v, position, _payload)
+            payload = self.insertPayload({
+                "key": k, 
+                "value": v, 
+                "payload": _payload, 
+                "position": position, 
+                })
             r = self.req(position, payload)
             if not r:
                 continue
@@ -85,15 +92,44 @@ class Z0SCAN(PluginBase):
                 html1 = r.text
                 if re.search(rule, html1, re.I | re.S | re.M):
                     result = self.generate_result()
-                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload, msg="Match rule: {}".format(rule))
-                    result.step("Request", r.reqinfo, generateResponse(r), "Payload: {} Rule: {}".format(payload, rule))
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": r.url, 
+                        "vultype": VulType.CMD_INNJECTION, 
+                        "show": {
+                            "Position": position, 
+                            "Param": k, 
+                            "Payload": payload
+                            }
+                        })
+                    result.step("Request1", {
+                        "position": position,
+                        "request": r.reqinfo, 
+                        "response": generateResponse(r), 
+                        "desc": "Payload: {} Rule: {}".format(payload, rule)
+                        })
                     self.success(result)
                     break
                 if dns.isUseReverse():
                     dnslist = dns.check(dns_token)
                     if dnslist:
                         result = self.generate_result()
-                        result.main(Type.REQUEST, self.request.hostname, r.url, VulType.CMD_INNJECTION, position, param=k, payload=payload, msg="Receive from Dnslog".format(rule))
-                        result.step("Request", r.reqinfo, generateResponse(r), "Payload:{} Receive from Dnslog".format(payload, repr(dnslist)))
+                        result.main({
+                            "type": Type.REQUEST, 
+                            "url": r.url, 
+                            "vultype": VulType.CMD_INNJECTION, 
+                            "show": {
+                                "Position": position, 
+                                "Param": k, 
+                                "Payload": payload,
+                                "Msg": "Receive from Dnslog",
+                                }
+                            })
+                        result.step("Request1", {
+                            "position": position,
+                            "request": r.reqinfo, 
+                            "response": generateResponse(r), 
+                            "desc": "Payload:{} Receive from Dnslog".format(payload),
+                            })
                         self.success(result)
                         break

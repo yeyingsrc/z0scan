@@ -1,22 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# JiuZero
+# JiuZero 2025/5/11
 
 from lib.core.log import colors
 
-VERSION = '2025.5.4'
+# z0scan version <year><month><day><type>
+VERSION = '2025.5.18.0'
+TYPE = "  DEV  " if VERSION.split('.')[-1] == '0' else "STABLE"
 SITE = 'https://github.com/JiuZero/z0scan'
 DEFAULT_USER_AGENT = "z0scan/#v%s (%s)" % (VERSION, SITE)
 
 banner = r"""
 {cy}__  _     __   _   _  _ _     
-{cy} / (.\   (_ ` / ` /_) )\ )       {m}~ Z0SCAN : {b}v{v} ~
+{cy} / (.\   (_ ` / ` /_) )\ )     {m}~ Z0SCAN {y}{t} {b}{v} ~
 {cy}/_  \_) .__) (_. / / (  (.   {g}{s}{e}
 
-""".format(s=SITE, v=VERSION, m=colors.m, cy=colors.cy, g=colors.g, b=colors.b, e=colors.e)
+""".format(s=SITE, v=VERSION, t=TYPE, m=colors.m, y=colors.y, cy=colors.cy, g=colors.g, b=colors.b, e=colors.e)
 
 ignoreParams = ['submit', '_', '_t', 'rand', 'hash']
 
+brute_fail_words =  ['密码错误', '重试', '不正确', '密码有误', '不成功', '重新输入', '不存在', '登录失败', '登陆失败', '密码或安全问题错误', 'history.go',
+                   'history.back',
+                   '已被锁定', '安全拦截', '还可以尝试', '无效', '攻击行为', '创宇盾', 'http://zhuji.360.cn/guard/firewall/stopattack.html',
+                   'D盾_拦截提示', '用户不存在',
+                   '非法', '百度云加速', '安全威胁', '防火墙', '黑客', '不合法', 'Denied', '尝试次数',
+                   'http://safe.webscan.360.cn/stopattack.html', "Illegal operation", "服务器安全狗防护验证页面"]  # 黑名单关键字
+                   
 logoutParams = [
     'logout',
     'log_out',

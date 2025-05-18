@@ -34,6 +34,14 @@ class Z0SCAN(PluginBase):
                 r = requests.get(_, headers=headers)
                 if re.search(flag[f], r.text, re.I | re.S | re.M):
                     result = self.generate_result()
-                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, PLACE.URL)
-                    result.step("Request", r.reqinfo, generateResponse(r), "Match {}".format(flag[f]))
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": r.url, 
+                        "vultype": VulType.SENSITIVE
+                        })
+                    result.step("Request1", {
+                        "request": r.reqinfo, 
+                        "response": generateResponse(r), 
+                        "desc": "{}".format(flag[f])
+                        })
                     self.success(result)

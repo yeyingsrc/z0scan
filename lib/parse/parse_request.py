@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# @Time    : 2020/4/3 11:11 AM
-# @Author  : w8ay
-# @File    : parse_request.py
+# w8ay 2020/4/3
 import os
 import re
 from urllib.parse import urlparse, unquote

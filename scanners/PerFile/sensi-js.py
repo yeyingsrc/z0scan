@@ -6,7 +6,7 @@
 import re
 
 from data.rule.sensi_js import rules
-from api import VulType, PLACE, Type, ResultObject, PluginBase, conf
+from api import VulType, PLACE, Type, PluginBase, conf
 
 
 class Z0SCAN(PluginBase):
@@ -36,9 +36,20 @@ class Z0SCAN(PluginBase):
                     if not is_continue:
                         continue
 
-                    result = ResultObject(self)
-                    result.main(Type.ANALYZE, self.requests.hostname, self.requests.url, VulType.SENSITIVE, PLACE.URL, msg="From Regx {} Find Sensitive Info {}".format(_, text))
-                    result.step("Request", self.requests.raw, self.response.raw, "From Regx {} Find Sensitive Info {}".format(_, text))
+                    result = self.generate_result()
+                    result.main({
+                        "type": Type.ANALYZE,
+                        "url": self.requests.url, 
+                        "vultype": VulType.SENSITIVE, 
+                        "show": {
+                            "Msg": "{}".format(text)
+                            }
+                        })
+                    result.step("Request1", {
+                        "request": self.requests.raw, 
+                        "response": self.response.raw, 
+                        "desc": "From Regx {} Find Sensitive Info {}".format(_, text)
+                        })
                     self.success(result)
                     issuc = True
                     break

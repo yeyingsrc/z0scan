@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# JiuZero 2025/4/12
+# JiuZero 2025/5/15
 
 rules = {
     ## Fingerprint
@@ -10,8 +10,8 @@ rules = {
     'json_web_token': r'​(eyJ[A-Za-z0-9_-]{10,}​\\​.[A-Za-z0-9._-]{10,}|eyJ[A-Za-z0-9_​\\​/+-]{10,}​\\​.[A-Za-z0-9._​\\​/+-]{10,})',
 
     ## Maybe Vulnerability
-    'dos_paramters': r'((size=)|(page=)|(num=)|(limit=)|(start=)|(end=)|(count=))', 
-    'debug_rogic_parameters': r'((access=)|(adm=)|(admin=)|(alter=)|(cfg=)|(clone=)|(config=)|(create=)|(dbg=)|(debug=)|(delete=)|(disable=)|(edit=)|(enable=)|(exec=)|(execute=)|(grant=)|(load=)|(make=)|(modify=)|(rename=)|(reset=)|(root=)|(shell=)|(test=)|(toggl=))',
+    # 'dos_paramters': r'((size=)|(page=)|(num=)|(limit=)|(start=)|(end=)|(count=))', 
+    # 'debug_rogic_parameters': r'((access=)|(adm=)|(admin=)|(alter=)|(cfg=)|(clone=)|(config=)|(create=)|(dbg=)|(debug=)|(delete=)|(disable=)|(edit=)|(enable=)|(exec=)|(execute=)|(grant=)|(load=)|(make=)|(modify=)|(rename=)|(reset=)|(root=)|(shell=)|(test=)|(toggl=))',
 
     ## Basic Infomation
     # "url": r'(\b|\'|")(?:http:|https:)(?:[\w/\.]+)?(?:[a-zA-Z0-9_\-\.]{1,})\.(?:php|asp|ashx|jspx|aspx|jsp|json|action|html|txt|xml|do)(\b|\'|")',
@@ -68,15 +68,17 @@ rules = {
     'windows_filedir_path': r'[^\w](([a-zA-Z]:\\(?:\w+\\?)*)|([a-zA-Z]:\\(?:\w+\\)*\w+\.\w+))',
     'slack_token': r"\"api_token\":\"(xox[a-zA-Z]-[a-zA-Z0-9-]+)\"",
     'ssh_privkey': r"([-]+BEGIN [^\s]+ PRIVATE KEY[-]+[\s]*[^-]*[-]+END [^\s]+ PRIVATE KEY[-]+)",
-    'heroku_api_key': r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
+    # 'heroku_api_key': r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
     'possible_creds': r"(" \
                     r"password\s*[`=:\"]+\s*[^\s]+|" \
                     r"password is\s*[`=:\"]*\s*[^\s]+|" \
                     r"pwd\s*[`=:\"]*\s*[^\s]+|" \
                     r"passwd\s*[`=:\"]+\s*[^\s]+)",
-    '​java_deserialization​': r"​(javax​\\​.faces​\\​.ViewState)​", 
+    'java_deserialization​': r"​(javax​\\​.faces​\\​.ViewState)​", 
     'jdbc-sql': r"jdbc:(mysql|h2|oracle|sqlserver|jtds:sqlserver):|System\.Data\.SqlClient|Data\.PassportContext|mysql\.username|mysql\.password|mysql\.url|jdbc\.username|jdbc\.password|mssql\.jdbc|mssql\.user|com\.microsoft\.sqlserver\.jdbc\.SQLServerDriver",
     'jdbc-connection': r'(jdbc:[a-z:]+://[a-z0-9\.\-_:;=/@?,&]+)',
     'authorization_header': r'((basic [a-z0-9=:_\+\/-]{5,100})|(bearer [a-z0-9_.=:_\+\/-]{5,100}))',
+    'iis_path_leak': r"<th>\xe7\x89\xa9\xe7\x90\x86\xe8\xb7\xaf\xe5\xbe\x84</th><td>(&nbsp;)*?[A-Z]",
+    "thinkphp_path_leak": r"#\d?\s.*?\.php\(\d?\).*?<br />",
     'init_password': r"​(initPassword​\\​s*[:=]​\\​s*​\"​?|​\"​initPassword​\"\\​s*:​\\​s*​\"​?|​\"​初始密码​\"\\​s*:​\\​s*​\"​?)[​\"​]?[^​\"\\​s]+[​\"​]?|​\\​b初始密码是​\\​s+[^​\"\\​s]+​",
 }

@@ -6,7 +6,7 @@ import re
 import requests
 from urllib.parse import urlparse
 
-from api import generateResponse, VulType, PLACE, Type, ResultObject, PluginBase, KB
+from api import generateResponse, VulType, PLACE, Type, PluginBase, KB
 
 class Z0SCAN(PluginBase):
     name = "other-oss-takeover"
@@ -29,7 +29,15 @@ class Z0SCAN(PluginBase):
                 'bucket doesnotexist', 'bucketnotfound', 'nosuchbucket']:
                 if keyword in response_text:
                     result = self.generate_result()
-                    result.main(Type.Request, r.url, self.requests.netloc, VulType.OTHER, PLACE.URL)
-                    result.step("Request", r.reqinfo, generateResponse(r), "Match KeyWord: {}".format(keyword))
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": self.requests.url, 
+                        "vultype": VulType.OTHER
+                        })
+                    result.step("Request1", {
+                        "request": r.reqinfo, 
+                        "response": generateResponse(r), 
+                        "desc": "Match KeyWord: {}".format(keyword)
+                        })
                     self.success(result)
                     return True

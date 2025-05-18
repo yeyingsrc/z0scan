@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/7/8
-# JiuZero 2025/3/30
+# JiuZero 2025/5/8
 
 import copy
 import re
 from urllib.parse import unquote, quote
 from lib.core.log import logger
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from api import generateResponse, updateJsonObjectFromStr, conf, KB, PLACE, VulType, POST_HINT, ResultObject, PluginBase, Type
+from api import generateResponse, updateJsonObjectFromStr, conf, KB, PLACE, VulType, POST_HINT, PluginBase, Type
 from lib.core.settings import DEFAULT_GET_POST_DELIMITER, DEFAULT_COOKIE_DELIMITER
 
 
@@ -16,9 +16,13 @@ class Z0SCAN(PluginBase):
     name = "trave-path"
     desc = 'Path Traversal'
 
-    def condition(self):
-        if not self.response.waf:
-            return True
+    def condition(self, iterdatas):
+        if conf.level == 0:
+            return False
+        for _ in iterdatas:
+            key, value, position = _
+            if ("." in value or "/" in value) or (key.lower() in ['filename', 'file', 'path', 'filepath']) and not self.response.waf:
+                return True
         return False
     
     def generate_payloads(self):
@@ -41,7 +45,8 @@ class Z0SCAN(PluginBase):
         return payloads
 
     def audit(self):
-        if not self.condition():
+        iterdatas = self.generateItemdatas()
+        if not self.condition(iterdatas):
             return
         plainArray = [
             r"; for 16-bit app support",
@@ -63,7 +68,6 @@ class Z0SCAN(PluginBase):
             r'/bin/(bash|sh)[^\r\n<>]*[\r\n]',
             r'\[boot loader\][^\r\n<>]*[\r\n]'
         ]
-        iterdatas = self.generateItemdatas()
         payloads = self.generate_payloads()
         with ThreadPoolExecutor(max_workers=None) as executor:
             futures = [
@@ -85,22 +89,51 @@ class Z0SCAN(PluginBase):
     def process(self, _, payloads, plainArray, regexArray):
         k, v, position = _
         for _payload in payloads:
-            payload = self.insertPayload(k, v, position, _payload)
+            payload = self.insertPayload({
+                "key": k, 
+                "value": v, 
+                "position": position, 
+                "payload": _payload
+                })
             r = self.req(position, payload)
             if not r:
                 continue
             html1 = r.text
             for plain in plainArray:
                 if plain in html1:
-                    result = ResultObject(self)
-                    result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.PATH_TRAVERSAL, position, param=k, payload=payload)
-                    result.step("Request", r.reqinfo, generateResponse(r), "Payload: {} Match: {}".format(payload, plain))
+                    result = self.generate_result()
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": self.requests.url, 
+                        "vultype": VulType.PATH_TRAVERSAL, 
+                        "show": {
+                            "Position": r"{position} > {k}", 
+                            "payload": payload
+                            }
+                        })
+                    result.step("Request1", {
+                        "request": r.reqinfo, 
+                        "response": generateResponse(r), 
+                        "desc": "Payload: {} Match: {}".format(payload, plain)
+                        })
                     self.success(result)
                     return
             for regex in regexArray:
                 if re.search(regex, html1, re.I | re.S | re.M):
-                    result = ResultObject(self)
-                    result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.PATH_TRAVERSAL, position, param=k, payload=payload)
-                    result.step("Request", r.reqinfo, generateResponse(r), "Payload: {} Match: {}".format(payload, regex))
+                    result = self.generate_result()
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": self.requests.url, 
+                        "vultype": VulType.PATH_TRAVERSAL, 
+                        "show": {
+                            "Position": r"{position} > {k}", 
+                            "payload": payload
+                            }
+                        })
+                    result.step("Request1", {
+                        "request": r.reqinfo, 
+                        "response": generateResponse(r), 
+                        "desc": "Payload: {} Match: {}".format(payload, regex)
+                        })
                     self.success(result)
                     return

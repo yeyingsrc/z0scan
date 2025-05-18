@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/6/28
-# JiuZero 2025/5/2
+# JiuZero 2025/5/7
 
 import copy, threading, time, traceback, config
-from pynput import keyboard
+import keyboard
 
 from lib.core.data import KB, conf
 from lib.core.log import logger, dataToStdout, colors
@@ -65,16 +65,20 @@ def start():
     run_threads(conf.threads, task_run)
 
 def task_run():
-    KB.esc_triggered = False
     def on_press(key):
-        if key == keyboard.Key.ctrl: # 不监听Ctrl键
-            return
-        elif key == keyboard.Key.esc: # 显示扫描状态
-            KB.esc_triggered = True
-        elif key == keyboard.Key.enter: # 暂停扫描
-            KB.pause = True
-    listener = keyboard.Listener(on_press=on_press)
-    listener.start()
+        try:
+            if key.name == 'esc':  # 显示扫描状态
+                KB.esc_triggered = True
+            elif key.name == 'enter':
+                if not KB.pause:  # 停止将监听流量发送到扫描任务
+                    logger.info("Stop to sending requests to scanners")
+                    KB.pause = True
+                else:  # 恢复
+                    logger.info("Refresh to sending requests to scanners")
+                    KB.pause = False
+        except AttributeError:
+            pass
+    keyboard.on_press(on_press)
     try:
         while KB["continue"] or not KB["task_queue"].empty():
             poc_module_name, request, response = KB["task_queue"].get()
@@ -103,7 +107,7 @@ def task_run():
             printProgress()
             KB.esc_triggered = False
     finally:
-        listener.stop()
+        keyboard.unhook_all()
 
 def printProgress():
     KB.lock.acquire()

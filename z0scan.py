@@ -11,7 +11,7 @@ from lib.core.enums import HTTPMETHOD
 
 from datetime import datetime
 from lib.parse.parse_request import FakeReq
-from lib.parse.parse_responnse import FakeResp
+from lib.parse.parse_response import FakeResp
 from lib.proxy.baseproxy import AsyncMitmProxy
 
 from lib.parse.cmdparse import cmd_line_parser
@@ -64,7 +64,7 @@ def main():
             try:
                 req = requests.get(domain)
             except Exception as e:
-                logger.error("request {} faild,{}".format(domain, str(e)))
+                logger.error("request {} faild, {}".format(domain, str(e)))
                 continue
             fake_req = FakeReq(domain, {}, HTTPMETHOD.GET, "")
             fake_resp = FakeResp(req.status_code, req.content, req.headers)

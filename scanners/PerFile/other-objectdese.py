@@ -4,7 +4,7 @@
 # JiuZero 2025/3/4
 
 from copy import deepcopy
-from api import PluginBase, ResultObject, VulType, isJavaObjectDeserialization, isPHPObjectDeserialization, isPythonObjectDeserialization, Type, PLACE, conf
+from api import PluginBase, VulType, isJavaObjectDeserialization, isPHPObjectDeserialization, isPythonObjectDeserialization, Type, PLACE, conf
 
 
 class Z0SCAN(PluginBase):
@@ -23,9 +23,23 @@ class Z0SCAN(PluginBase):
         elif isPythonObjectDeserialization(v):
             whats = "PythonObjectDeserialization"
         if whats:
-            result = ResultObject(self)
-            result.main(Type.ANALYZE, self.requests.hostname, self.requests.url, VulType.OTHER, position, param=k, payload=v, msg="Type is {}".format(whats))
-            result.step("Request", self.requests.raw, self.response.raw, "{} is the deserialization of {} as result".format(k, whats))
+            result = self.generate_result()
+            result.main({
+                "type": Type.ANALYZE, 
+                "url": self.requests.url, 
+                "vultype": VulType.OTHER, 
+                "show": {
+                    "Position": position, 
+                    "Param": k, 
+                    "Payload": v, 
+                    "Msg": "{}".format(whats)
+                    }
+                })
+            result.step("Request1", {
+                "request": self.requests.raw, 
+                "response": self.response.raw, 
+                "desc": "{} is the deserialization of {} as result".format(k, whats)
+                })
             self.success(result)
 
     def audit(self):

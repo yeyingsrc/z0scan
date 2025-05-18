@@ -12,7 +12,7 @@ from api import conf, generateResponse, VulType, PLACE, Type, PluginBase, KB
 
 
 class Z0SCAN(PluginBase):
-    name = "sensi-backupfolder"
+    name = "sensi-backupFolder"
     desc = 'Backup File Of Each Folder'
 
     def _check(self, content):
@@ -50,9 +50,6 @@ class Z0SCAN(PluginBase):
             directory = os.path.basename(url)
             headers = self.requests.headers.copy()
 
-            for i in ['.rar', '.zip']:
-                file_dic.append(directory + i)
-
             for payload in file_dic:
                 test_url = url + "/" + payload
                 try:
@@ -66,6 +63,17 @@ class Z0SCAN(PluginBase):
 
                     rarsize = int(r.headers.get('Content-Length')) // 1024 // 1024
                     result = self.generate_result()
-                    result.main(Type.REQUEST, self.requests.hostname, r.url, VulType.SENSITIVE, msg="File Sizes {}M".format(rarsize))
-                    result.step("Request", r.reqinfo, content.decode(errors='ignore'), "File Sizes {}M".format(rarsize))
+                    result.main({
+                        "type": Type.REQUEST, 
+                        "url": r.url, 
+                        "vultype": VulType.SENSITIVE, 
+                        "show": {
+                            "Sizes {}M".format(rarsize)
+                            }
+                        })
+                    result.step("Request1", {
+                        "request": r.reqinfo, 
+                        "response": content.decode(errors='ignore'), 
+                        "desc": "File Sizes {}M".format(rarsize)
+                        })
                     self.success(result)

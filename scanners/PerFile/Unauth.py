@@ -5,7 +5,7 @@
 
 from copy import deepcopy
 import difflib
-from api import generateResponse, VulType, PLACE, PluginBase, Type
+from api import generateResponse, VulType, PLACE, PluginBase, Type, conf
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Z0SCAN(PluginBase):
@@ -15,11 +15,23 @@ class Z0SCAN(PluginBase):
     SIMILAR_MIN = 0.90
 
     def condition(self):
+        if conf.level == 0:
+            return False
         for k, v in self.requests.headers.items():
             if k.lower() in ["cookie", "token", "auth"]:
-                return True
+                if conf.level <= 2 and self.requests.suffix == ".js":
+                    return False
+                else:
+                    return True
         return False
-            
+        
+    def del_cookie_token(self):
+        request_headers = deepcopy(self.requests.headers)
+        for k, v in self.requests.headers.items():
+            if k.lower() in ["cookie", "token", "auth"]:
+                del request_headers[k]
+                return request_headers, k
+                
     def audit(self):
         if not self.condition():
             return
@@ -33,14 +45,18 @@ class Z0SCAN(PluginBase):
         ratio = round(self.seqMatcher.quick_ratio(), 3)
         if ratio > self.SIMILAR_MIN:
             result = self.generate_result()
-            result.main(Type.REQUEST, self.requests.hostname, self.requests.url, VulType.UNAUTH, PLACE.HEADER, msg="Delete {}".format(k))
-            result.step("Request", r.reqinfo, generateResponse(r), "Delete {}".format(k))
+            result.main({
+                "type": Type.REQUEST, 
+                "url": self.requests.url, 
+                "vultype": VulType.UNAUTH, 
+                "desc": {
+                    "Msg": "Delete {}".format(k)
+                    }
+                })
+            result.step("Request1", {
+                "request": r.reqinfo, 
+                "response": generateResponse(r), 
+                "desc": "Delete {}".format(k)
+                })
             self.success(result)
             return
-
-    def del_cookie_token(self):
-        request_headers = deepcopy(self.requests.headers)
-        for k, v in self.requests.headers.items():
-            if k.lower() in ["cookie", "token", "auth"]:
-                del request_headers[k]
-                return request_headers, k
