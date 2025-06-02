@@ -10,7 +10,7 @@ from lib.controller.controller import task_push
 from lib.core.common import isListLike, get_parent_paths
 from lib.core.data import conf, KB
 from lib.core.log import logger, colors
-from lib.core.checkwaf import CheckWaf
+from lib.core.wafDetector import detector
 from lib.core.enums import HTTPMETHOD
 from lib.core.plugins import PluginBase
 from lib.parse.parse_request import FakeReq
@@ -30,21 +30,18 @@ class Z0SCAN(PluginBase):
         url = deepcopy(self.requests.url)
 
         # 跳过一些扫描
-        p = urlparse(url)
-        if not p.netloc:
-            return
         if self.requests.suffix in notAcceptedExt:
             return
         for rule in conf.excludes:
-            if rule in p.netloc:
+            if rule in self.requests.netloc:
                 logger.info("Skip Domain: {}".format(url))
                 return
             
         # 跳过前台的同一功能页（通常为文章页）
+        itemdates = self.generateItemdatas()
         params = ""
         _url = re.sub(r'([/_?&=-])(\d+)', "0", url).split('?')[0]
         _params = {}
-        itemdates = self.generateItemdatas()
         if not len(itemdates) > 6:
             for _ in itemdates:
                 k, v, position = _
@@ -53,18 +50,17 @@ class Z0SCAN(PluginBase):
                 _params[k] = v
             params = str(sorted(_params.items())).replace('\'', '"')
             history = selectdb("CACHE", "HOSTNAME", where="URL='{}' AND PARAMS='{}'".format(_url, params))
-            if history:
+            if history and conf.skip_similar_url:
                 logger.info("Skip URL: {}".format(url))
                 return
 
-        itemdates = self.generateItemdatas()
-        logger.debug(itemdates, origin='iterdatas')
+        logger.debug(itemdates, origin='iterdatas', level=1)
         
         # Waf检测
         if not conf.ignore_waf:
             while KB.limit:
                 pass
-            CheckWaf(self)
+            detector(self)
             KB.limit = False
 
         if params:
@@ -86,20 +82,19 @@ class Z0SCAN(PluginBase):
             for mod in values:
                 m, version = mod.fingerprint(self.requests.suffix.lower(), lower_headers, self.response.text)
                 if isinstance(m, str):
-                    if name == "os" and m not in self.response.os:
-                        self.response.os[m] = version
-                    elif name == "webserver" and m not in self.response.webserver:
-                        self.response.webserver[m] = version
-                    elif name == "programing" and m not in self.response.programing:
-                        self.response.programing[m] = version
+                    if name == "os" and m not in self.fingerprints.os:
+                        self.fingerprints.os[m] = version
+                    elif name == "webserver" and m not in self.fingerprints.webserver:
+                        self.fingerprints.webserver[m] = version
+                    elif name == "programing" and m not in self.fingerprints.programing:
+                        self.fingerprints.programing[m] = version
         
         # PerFile
         if KB["spiderset"].add(url, 'PerFile'):
             task_push('PerFile', self.requests, self.response)
 
         # PerServer
-        p = urlparse(url)
-        domain = "{}://{}".format(p.scheme, p.netloc)
+        domain = "{}://{}".format(self.requests.scheme, self.requests.netloc)
         if KB["spiderset"].add(domain, 'PerServer'):
             req = requests.get(domain, headers=headers, allow_redirects=False)
             fake_req = FakeReq(domain, headers, HTTPMETHOD.GET, "")

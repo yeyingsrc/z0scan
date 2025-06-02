@@ -19,7 +19,7 @@ def insertdb(table: str, columns_values: dict):
     conn = sqlite3.connect(dbpath)
     cursor = conn.cursor()
     query = 'INSERT INTO {} ({}) VALUES({})'.format(table, columns, values)
-    logger.debug("The DB Query: {}".format(query), origin="db")
+    logger.debug("The DB Query: {}".format(query), origin="db", level=3)
     cursor.execute(query)
     conn.commit()
     conn.close()
@@ -32,7 +32,7 @@ def selectdb(table: str, columns:str, where=None):
         query = "SELECT {} FROM {}".format(columns, table)
         if where:
             query += " WHERE {}".format(where)
-        logger.debug("The DB Query: {}".format(query), origin="db")
+        logger.debug("The DB Query: {}".format(query), origin="db", level=3)
         cursor.execute(query)
         result = cursor.fetchone()
         conn.close()
@@ -56,7 +56,7 @@ def initdb(root):
     try:
         cursor.execute('DELETE FROM CACHE')
     except Exception as e:
-        logger.debug(e, origin="db")
+        logger.debug(e, origin="db", level=3)
     cursor.execute('CREATE TABLE IF NOT EXISTS CACHE(HOSTNAME TEXT, URL TEXT, PARAMS TEXT)')
     conn.commit()
     conn.close()

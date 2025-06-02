@@ -30,15 +30,15 @@ class FakeReq(object):
         self._hostname = ""
         self._port = 80
         self._url = url
+        self._scheme = "http"
 
         self._build()
 
     def _analysis_post(self):
         post_data = unquote(self._body)
-        if re.search('([^=]+)=([^%s]+%s?)' % (DEFAULT_GET_POST_DELIMITER, DEFAULT_GET_POST_DELIMITER),
-                     post_data):
+        if re.search('([^=]+)=([^%s]+%s?)' % (DEFAULT_GET_POST_DELIMITER, DEFAULT_GET_POST_DELIMITER), post_data):
             self._post_hint = POST_HINT.NORMAL
-            self._post_data = paramToDict(post_data, place=PLACE.DATA, hint=self._post_hint)
+            self._post_data = paramToDict(post_data, place=PLACE.NORMAL_DATA, hint=self._post_hint)
 
         elif re.search(JSON_RECOGNITION_REGEX, post_data):
             self._post_hint = POST_HINT.JSON
@@ -51,13 +51,14 @@ class FakeReq(object):
 
         elif re.search(ARRAY_LIKE_RECOGNITION_REGEX, post_data):
             self._post_hint = POST_HINT.ARRAY_LIKE
-            self._post_data = paramToDict(post_data, place=PLACE.DATA, hint=self.post_hint)
+            self._post_data = paramToDict(post_data, place=PLACE.NORMAL_DATA, hint=self.post_hint)
 
         elif re.search(MULTIPART_RECOGNITION_REGEX, post_data):
             self._post_hint = POST_HINT.MULTIPART
 
     def _build(self):
         p = self._urlparse
+        self._scheme = p.scheme
         port = 80
         if p.scheme == "https":
             port = 443
@@ -85,7 +86,7 @@ class FakeReq(object):
         if "cookie" in self._headers or "Cookie" in self._headers:
             _cookies = self._headers.get("cookie", self._headers.get("Cookie", {}))
             if _cookies:
-                self._cookies = paramToDict(_cookies, place=PLACE.HEADER)
+                self._cookies = paramToDict(_cookies, place=PLACE.COOKIE)
 
     @property
     def raw(self):
@@ -126,6 +127,10 @@ class FakeReq(object):
     @property
     def params(self) -> dict:
         return self._params
+        
+    @property
+    def scheme(self) -> str:
+        return self._scheme
 
     @params.setter
     def params(self, value):
@@ -140,7 +145,7 @@ class FakeReq(object):
         return self._post_data
 
     @post_data.setter
-    def post_data(self, postdata):
+    def datas(self, postdata):
         self._post_data = postdata
 
     @property

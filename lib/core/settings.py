@@ -5,15 +5,15 @@
 from lib.core.log import colors
 
 # z0scan version <year><month><day><type>
-VERSION = '2025.5.18.0'
-TYPE = "  DEV  " if VERSION.split('.')[-1] == '0' else "STABLE"
+VERSION = '2025.6.2.0'
+TYPE = " -dev- " if VERSION.split('.')[-1] == '0' else "stable"
 SITE = 'https://github.com/JiuZero/z0scan'
 DEFAULT_USER_AGENT = "z0scan/#v%s (%s)" % (VERSION, SITE)
 
 banner = r"""
-{cy}__  _     __   _   _  _ _     
-{cy} / (.\   (_ ` / ` /_) )\ )     {m}~ Z0SCAN {y}{t} {b}{v} ~
-{cy}/_  \_) .__) (_. / / (  (.   {g}{s}{e}
+{cy}__  _     
+{cy} / (.\   {m}~ Z0SCAN {y}{t} {b}{v} ~
+{cy}/_  \_) {g}{s}{e}
 
 """.format(s=SITE, v=VERSION, t=TYPE, m=colors.m, y=colors.y, cy=colors.cy, g=colors.g, b=colors.b, e=colors.e)
 

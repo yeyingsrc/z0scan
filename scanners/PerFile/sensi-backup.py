@@ -12,11 +12,8 @@ from api import generateResponse, VulType, PLACE, HTTPMETHOD, PluginBase, conf, 
 class Z0SCAN(PluginBase):
     name = 'sensi-backupFile'
     desc = 'Backup File Finder for PerFile'
-
-    def condition(self):
-        if conf.level == 0:
-            return False
-        return True
+    version = "2025.5.15"
+    risk = 1
         
     def _check(self, content):
         """
@@ -44,7 +41,7 @@ class Z0SCAN(PluginBase):
         return False
 
     def audit(self):
-        if not self.condition:
+        if conf.level == 0 and not 1 in conf.level:
             return
         headers = self.requests.headers
         url = self.requests.url

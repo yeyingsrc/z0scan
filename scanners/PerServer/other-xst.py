@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Reference: https://github.com/shenril/Sitadel
 # JiuZero 2025/5/12
 
 import re
@@ -9,14 +10,11 @@ from api import generateResponse, VulType, PLACE, HTTPMETHOD, PluginBase, conf, 
 class Z0SCAN(PluginBase):
     name = "other-xst"
     desc = 'XST'
-        
-    def condition(self):
-        if conf.level == 0:
-            return False
-        return True
-        
+    version = "2025.5.12"
+    risk = -1
+    
     def audit(self):
-        if self.condition():
+        if not conf.level == 0 and -1 in conf.risk:
             r = requests.request("TRACE", self.requests.netloc + "/*", allow_redirects=True, verify=False, headers={"Z0SCAN": "z0scanXST"})
             if re.search("Z0SCAN: *?z0scanXST", r.text, re.I):
                 result = self.generate_result()

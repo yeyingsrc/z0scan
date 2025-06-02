@@ -17,7 +17,6 @@ six>=1.12.0
 tld>=0.9.3
 urllib3>=1.26.5
 future
-keyboard
 bs4
 dnspython
 fake_useragent>=2.2.0

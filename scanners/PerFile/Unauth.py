@@ -11,15 +11,18 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 class Z0SCAN(PluginBase):
     name = "unauth"
     desc = 'Unauthorized'
+    version = "2025.3.4"
+    risk = 2
+    
     seqMatcher = difflib.SequenceMatcher(None)
     SIMILAR_MIN = 0.90
 
     def condition(self):
-        if conf.level == 0:
+        if conf.level == 0 or not 2 in conf.risk:
             return False
         for k, v in self.requests.headers.items():
             if k.lower() in ["cookie", "token", "auth"]:
-                if conf.level <= 2 and self.requests.suffix == ".js":
+                if self.requests.suffix == ".js":
                     return False
                 else:
                     return True
@@ -37,7 +40,7 @@ class Z0SCAN(PluginBase):
             return
         resp = self.response.text
         headers, k = self.del_cookie_token()
-        r = self.req(PLACE.HEADER, headers)
+        r = self.req(PLACE.COOKIE, headers)
         if not r:
             return
         min_len = min(len(resp), len(r.text))

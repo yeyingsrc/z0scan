@@ -12,15 +12,12 @@ from api import generateResponse, VulType, PLACE, Type, PluginBase, conf, logger
 class Z0SCAN(PluginBase):
     name = "redirect"
     desc = 'Open Redirect'
+    version = "2025.3.18"
+    risk = 1
     
     def __init__(self):
         super().__init__()
         self.test_domain = f"http://{random.randint(10000,99999)}.com"
-        
-    def condition(self):
-        if conf.level == 0:
-            return False
-        return True
     
     def _detect_redirect_type(self, response):
         redirect_patterns = {
@@ -66,7 +63,7 @@ class Z0SCAN(PluginBase):
         return any(re.search(p, value, re.I) for p in patterns)
 
     def audit(self):
-        if self.condition():
+        if conf.level != 0 and 1 in conf.risk:
             iterdatas = self.generateItemdatas()
             with ThreadPoolExecutor(max_workers=None) as executor:
                 futures = [

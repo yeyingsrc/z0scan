@@ -14,6 +14,8 @@ from lib.helper.diifpage import findDynamicContent, getFilteredPageContent, remo
 class Z0SCAN(PluginBase):
     name = "sqli-bool"
     desc = 'Bool SQL Finder'
+    version = "2025.5.11"
+    risk = 2
     
     def __init__(self):
         super().__init__()
@@ -30,11 +32,6 @@ class Z0SCAN(PluginBase):
         self.retry = 3
         # 存储动态内容的标记
         self.dynamic = []
-    
-    def condition(self):
-        if conf.level == 0:
-            return False
-        return True
     
     def findDynamicContent(self, firstPage, secondPage):
         ret = findDynamicContent(firstPage, secondPage)
@@ -112,7 +109,7 @@ class Z0SCAN(PluginBase):
             return False
 
     def audit(self):
-        if not self.condition():
+        if not (2 in conf.risk or conf.level != 0):
             return
         count = 0
         ratio = 0
@@ -179,7 +176,7 @@ class Z0SCAN(PluginBase):
                 [" AND True#", " AND False#"],
             ]
             payloads = int_payloads + payloads
-        if self.response.waf:
+        if self.fingerprints.waf:
             if str(v).isdigit():
                 payloads = [
                     ["-0", "-10000"],
@@ -206,8 +203,7 @@ class Z0SCAN(PluginBase):
                         "url": self.requests.url, 
                         "vultype": VulType.SQLI, 
                         "show": {
-                            "Position": position, 
-                            "Param": k, 
+                            "Position": f"{position} > {k}",
                             "Payload": payload,
                         }
                     })

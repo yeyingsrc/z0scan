@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# JiuZero 2025/5/7
+# JiuZero 2025/5/31
 
 from api import VulType, Type, PLACE, PluginBase, generateResponse, random_str, random_num, conf
 import requests
 
 class Z0SCAN(PluginBase):
-    name = "upload-oss-put"
+    name = "upload-oss"
     desc = "Detect the vulnerability of uploading arbitrary files to OSS"
+    version = "2025.5.31"
+    risk = 3
     
-    def _test_upload(self, folder, method="PUT"):
+    def _test_upload(self, method="PUT"):
+        url = self.requests.netloc.rstrip("/")
         filename = f"{random_str(8)}_{random_num(6)}.txt"
         content = f"{random_str(12)}"
-        target_url = f"{folder}/{filename}"
+        target_url = f"{url}/{filename}"
         try:
             if method == "PUT":
                 r1 = requests.put(target_url, data=content, headers=self.requests.headers, verify=False)
@@ -30,29 +33,11 @@ class Z0SCAN(PluginBase):
             pass
         return None
     
-    def condition(self):
-        for k, v in self.response.webserver.items():
-            if k == "OSS":
-                return True
-        return False
-    
     def audit(self):
-        if not self.condition():
-            return
-        folders = [
-            self.requests.netloc,
-            f"{self.requests.netloc}/uploads",
-            f"{self.requests.netloc}/static"
-        ]
-        if conf.level >= 3:
-            folders.extend([
-                f"{self.requests.netloc}/public",
-                f"{self.requests.netloc}/upload"
-            ])
-        test_methods = ["PUT"] if conf.level < 2 else ["PUT", "POST"]
-        for folder in folders:
+        if not self.fingerprints.webserver.get("OSS") and 3 in conf.risk and conf.level != 0:
+            test_methods = ["PUT"] if conf.level <= 2 else ["PUT", "POST"]
             for method in test_methods:
-                if r := self._test_upload(folder, method):
+                if r := self._test_upload(method):
                     r1, r2 = r
                     result = self.generate_result()
                     result.main({
@@ -61,12 +46,12 @@ class Z0SCAN(PluginBase):
                         "vultype": VulType.FILEUPLOAD
                         })
                     result.step("Request1", {
-                        "request": r1.reqinfo, 
+                        "request": self.requests.raw, 
                         "response": generateResponse(r1), 
                         "desc": f"Target URL: {r1.url}"
                         })
                     result.step("Request2", {
-                        "request": r2.reqinfo, 
+                        "request": f"GET {r2.url}", 
                         "response": generateResponse(r2), 
                         "desc": "Content matches verification string"
                         })

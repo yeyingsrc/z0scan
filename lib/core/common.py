@@ -153,7 +153,7 @@ def paramToDict(parameters, place=PLACE.PARAM, hint=POST_HINT.NORMAL) -> dict:
     """
 
     testableParameters = {}
-    if place == PLACE.HEADER:
+    if place == PLACE.COOKIE:
         splitParams = parameters.split(DEFAULT_COOKIE_DELIMITER)
         for element in splitParams:
             parts = element.split("=")
@@ -165,7 +165,7 @@ def paramToDict(parameters, place=PLACE.PARAM, hint=POST_HINT.NORMAL) -> dict:
             parts = element.split("=")
             if len(parts) >= 2:
                 testableParameters[parts[0]] = ''.join(parts[1:])
-    elif place == PLACE.DATA:
+    elif place == PLACE.NORMAL_DATA:
         if hint == POST_HINT.NORMAL:
             splitParams = parameters.split(DEFAULT_GET_POST_DELIMITER)
             for element in splitParams:
@@ -298,11 +298,11 @@ def url_dict2str(d: dict, position=PLACE.PARAM):
         return d
     temp = ""
     urlsafe = "!$%'()*+,/:;=@[]~"
-    if position == PLACE.PARAM or position == PLACE.DATA:
+    if position == PLACE.PARAM or position == PLACE.NORMAL_DATA:
         for k, v in d.items():
             temp += "{}={}{}".format(k, quote(v, safe=urlsafe), DEFAULT_GET_POST_DELIMITER)
         temp = temp.rstrip(DEFAULT_GET_POST_DELIMITER)
-    elif position == PLACE.HEADER:
+    elif position == PLACE.COOKIE:
         for k, v in d.items():
             temp += "{}={}{} ".format(k, quote(v, safe=urlsafe), DEFAULT_COOKIE_DELIMITER)
         temp = temp.rstrip(DEFAULT_COOKIE_DELIMITER)

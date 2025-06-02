@@ -12,14 +12,11 @@ from api import conf, KB, random_str, generateResponse, VulType, PLACE, Type, Pl
 class Z0SCAN(PluginBase):
     name = "xss-net"
     desc = '.NET XSS'
+    version = "2025.3.3"
+    risk = 1
     
-    def condition(self):
-        if not self.response.waf:
-            return True
-        return False
-        
     def audit(self):
-        if self.condition():
+        if 1 in conf.risk and conf.level != 0 and not self.fingerprints.waf:
             p = urlparse(self.requests.url)
             domain = "{}://{}/".format(p.scheme, p.netloc)
             payload = "(A({}))/".format(random_str(6))

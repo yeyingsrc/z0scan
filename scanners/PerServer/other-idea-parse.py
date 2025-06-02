@@ -12,14 +12,11 @@ from api import KB, conf, generateResponse, VulType, PLACE, Type, PluginBase
 class Z0SCAN(PluginBase):
     name = "other-idea-parse"
     desc = 'Idea Parse'
+    version = "2025.3.2"
+    risk = 1
     
-    def condition(self):
-        if not self.response.waf:
-            return True
-        return False
-        
     def audit(self):
-        if self.condition():
+        if 1 in conf.risk and conf.level != 0 and not self.fingerprints.waf: # WAF可能会拦截对包含.idea的访问
             headers = self.requests.headers.copy()
             p = urlparse(self.requests.url)
             domain = "{}://{}/".format(p.scheme, p.netloc)

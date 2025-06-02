@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# JiuZero 2025/3/24
+# JiuZero 2025/5/22
  
 from colorama import Fore, Style
 import time, os, sys
 from lib.core.data import conf
 
-def dataToStdout(data, bold=False):
+def dataToStdout(data, enter=True):
+    os.write(sys.stdout.fileno(), b'\r')
+    os.write(sys.stdout.fileno(), b'\x1b[2K')
     os.write(sys.stdout.fileno(), data.encode())
     return
+
 
 class colors:
     r = Fore.RED
@@ -30,7 +33,7 @@ class logger:
     def warning(value):
         _time = logger._get_time()
         dataToStdout(
-            "[{}{}{}] [{}WARN{}] {}\n".format(colors.b, _time, colors.e, colors.y, colors.e, value)
+            f"[{colors.b}{_time}{colors.e}] [{colors.y}WAN{colors.e}] {value}\n"
         )
  
     @staticmethod
@@ -38,29 +41,29 @@ class logger:
         _time = logger._get_time()
         if origin:
             dataToStdout(
-                "[{}{}{}] [{}ERROR{}] [{}{}{}] {}\n".format(colors.b, _time, colors.e, colors.r, colors.e, colors.cy, origin, colors.e, value)
+                f"[{colors.b}{_time}{colors.e}] [{colors.r}ERR{colors.e}] [{colors.cy}{origin}{colors.e}] {value}\n"
             )
         else:
             dataToStdout(
-                "[{}{}{}] [{}ERROR{}] {}\n".format(colors.b, _time, colors.e, colors.r, colors.e, value)
+                f"[{colors.b}{_time}{colors.e}] [{colors.r}ERR{colors.e}] {value}\n"
             )
  
     @staticmethod
     def info(value):
         _time = logger._get_time()
         dataToStdout(
-            "[{}{}{}] [{}INFO{}] {}\n".format(colors.b, _time, colors.e, colors.g, colors.e, value)
+            f"[{colors.b}{_time}{colors.e}] [{colors.g}INF{colors.e}] {value}\n"
         )
  
     @staticmethod
-    def debug(value, origin=None):
-        if conf.debug:
+    def debug(value, origin=None, level=1):
+        if conf.debug and conf.debug >= level:
             _time = logger._get_time()
             if origin:
                 dataToStdout(
-                    "[{}{}{}] [{}DEBUG{}] [{}{}{}] {}\n".format(colors.b, _time, colors.e, colors.m, colors.e, colors.cy, origin, colors.e, value)
+                    f"[{colors.b}{_time}{colors.e}] [{colors.m}DBUG{colors.e}] [{colors.cy}{origin}{colors.e}] {value}\n"
                 )
             else:
                 dataToStdout(
-                    "[{}{}{}] [{}DEBUG{}] {}\n".format(colors.b, _time, colors.e, colors.m, colors.e, value)
+                    f"[{colors.b}{_time}{colors.e}] [{colors.m}DBUG{colors.e}] {value}\n"
                 )

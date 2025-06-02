@@ -9,12 +9,12 @@ from api import generateResponse, VulType, PLACE, HTTPMETHOD, PluginBase, conf, 
 class Z0SCAN(PluginBase):
     name = "other-webdavPS"
     desc = 'WebDAV authentication bypass vulnerability,'
-        
-    def condition(self):
-        return True
+    version = "2025.5.11"
+    risk = 1
         
     def audit(self):
-        if self.condition():
+        # 尝试主动未授权
+        if not conf.level == 0 and 1 in conf.risk:
             r = requests.request("PROPFIND", self.requests.netloc, headers={"Host": "localhost", "Content-Length": "0"})
             if re.search("<a:href>http://localhost/</a:href>", r.text, re.I):
                 result = self.generate_result()

@@ -13,9 +13,8 @@ from api import conf, generateResponse, VulType, PLACE, PluginBase, Type
 class Z0SCAN(PluginBase):
     name = "sensi-backupPS"
     desc = "Backup Files Of Each Domain"
-    
-    def condition(self):
-        return True
+    version = "2025.3.1"
+    risk = 1
     
     def _check(self, content):
         """
@@ -43,7 +42,7 @@ class Z0SCAN(PluginBase):
         return False
 
     def audit(self):
-        if self.condition():
+        if not conf.level == 0 and 1 in conf.risk:
             headers = self.requests.headers.copy()
             url = self.requests.url
             p = urlparse(url)

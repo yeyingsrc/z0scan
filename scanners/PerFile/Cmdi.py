@@ -17,17 +17,14 @@ from api import generateResponse, random_str, updateJsonObjectFromStr, splitUrlP
 class Z0SCAN(PluginBase):
     name = "cmdi"
     desc = 'Cmd Injection'
-
-    def condition(self):
-        if conf.level == 0:
-            return False
-        if not self.response.waf and self.requests.suffix in acceptedExt:
-            return True
-        return False
+    version = "2025.5.15"
+    risk = 3
         
     def audit(self):
         url = self.requests.url
-        if self.condition():
+        if conf.level == 0 or not 3 in conf.risk:
+            return
+        if not self.fingerprints.waf and self.requests.suffix in acceptedExt:
             randint = random.randint(1000, 9000)
             payloads = {
                 "set|set&set": [
@@ -46,7 +43,7 @@ class Z0SCAN(PluginBase):
                     "NjE2Mjk4Mwo=6162983"
                 ]
             }
-            for k, v in self.response.os.items():
+            for k, v in self.fingerprints.os.items():
                 if k == "WINDOWS":
                     del payloads["echo `echo {}|base64`{}".format(randint, randint)]
 

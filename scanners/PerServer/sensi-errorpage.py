@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# w8ay
+# w8ay 2019/7/6
 # JiuZero 2025/3/2
 
 from urllib.parse import urlparse
@@ -13,15 +13,14 @@ from lib.helper.helper_sensitive import sensitive_page_error_message_check
 class Z0SCAN(PluginBase):
     name = "sensi-errorpage"
     desc = 'Leak information in Error Page'
+    version = "2025.3.2"
+    risk = 0
     
-    def condition(self):
-        return True
-        
     def audit(self):
-        if self.condition():
+        if not conf.level == 0 and 0 in conf.risk:
             headers = self.requests.headers.copy()
             p = urlparse(self.requests.url)
-            domain = "{}://{}/".format(p.scheme, p.netloc) + random_str(6) + ".jsp"
+            domain = "{}://{}/".format(p.scheme, p.netloc) + random_str(6)
             r = requests.get(domain, headers=headers)
             messages = sensitive_page_error_message_check(r.text)
             if messages:

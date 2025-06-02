@@ -11,15 +11,12 @@ from api import generateResponse, md5, conf, KB, VulType, PLACE, Type, PluginBas
 
 class Z0SCAN(PluginBase):
     name = "xss-flash"
-    name = 'Flash SWF XSS'
-    
-    def condition(self):
-        if not self.response.waf:
-            return True
-        return False
+    desc = 'Flash SWF XSS'
+    version = "2025.3.30"
+    risk = 1
         
     def audit(self):
-        if self.condition():
+        if 1 in conf.risk and conf.level != 0 and not self.fingerprints.waf:
             p = urlparse(self.requests.url)
             arg = "{}://{}/".format(p.scheme, p.netloc)
             FileList = []

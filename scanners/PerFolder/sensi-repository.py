@@ -12,15 +12,11 @@ from api import KB, conf, generateResponse, VulType, PLACE, PluginBase, Type
 class Z0SCAN(PluginBase):
     name = "sensi-repository"
     desc = '.git .svn .bzr .hg Finder'
-
-    def condition(self):
-        # Waf通常会拦截对这类敏感文件的请求
-        if not self.response.waf:
-            return True
-        return False
-        
+    version = "2025.3.4"
+    risk = 1
+    
     def audit(self):
-        if self.condition():
+        if not self.fingerprints.waf and 1 in conf.risk and conf.level != 0:
             flag = {
                 "/.svn/all-wcprops": r"svn:wc:ra_dav:version-url",
                 "/.git/config": r'repositoryformatversion[\s\S]*',

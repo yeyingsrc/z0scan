@@ -12,6 +12,7 @@ from lib.core.enums import HTTPMETHOD
 from datetime import datetime
 from lib.parse.parse_request import FakeReq
 from lib.parse.parse_response import FakeResp
+# from lib.parse.parse_requestText import RequestParser
 from lib.proxy.baseproxy import AsyncMitmProxy
 
 from lib.parse.cmdparse import cmd_line_parser
@@ -20,10 +21,10 @@ from lib.core.log import logger
 from lib.core.option import init
 
 def version_check():
+    # Check Python version
     if sys.version.split()[0][0] == "2":
         logger.error("Incompatible Python version detected ('{}'). To successfully run Z0SCAN you'll have to use version >= 3.6 (visit 'https://www.python.org/downloads/')".format(sys.version.split()[0]))
         sys.exit(0)
-
 
 def modulePath():
     """
@@ -51,7 +52,7 @@ def main():
         urls = []
         if conf.url:
             urls.append(conf.url)
-        if conf.url_file:
+        elif conf.url_file:
             urlfile = conf.url_file
             if not os.path.exists(urlfile):
                 logger.error("File:{} don't exists".format(urlfile))
@@ -60,11 +61,24 @@ def main():
                 _urls = f.readlines()
             _urls = [i.strip() for i in _urls]
             urls.extend(_urls)
+        '''
+        elif conf.data_file:
+            with open(conf.data_file, 'r') as f:
+                lines = f.readlines()
+            parser = RequestParser(lines)
+            parser.parse()
+            request_args = parser.to_requests_args()
+            print(str(request_args))
+            req = requests.request(**request_args, allow_redirects=True)
+            fake_req = FakeReq(req.url, {}, HTTPMETHOD.GET, "")
+            fake_resp = FakeResp(req.status_code, req.content, req.headers)
+            task_push_from_name('loader', fake_req, fake_resp)
+        '''
         for domain in urls:
             try:
                 req = requests.get(domain)
             except Exception as e:
-                logger.error("request {} faild, {}".format(domain, str(e)))
+                logger.error("Request {} faild, {}".format(domain, str(e)))
                 continue
             fake_req = FakeReq(domain, {}, HTTPMETHOD.GET, "")
             fake_resp = FakeResp(req.status_code, req.content, req.headers)

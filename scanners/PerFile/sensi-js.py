@@ -12,14 +12,11 @@ from api import VulType, PLACE, Type, PluginBase, conf
 class Z0SCAN(PluginBase):
     name = "sensi-js"
     desc = 'Js Sensitive Finder'
-
-    def condition(self):
-        if self.requests.suffix == ".js":
-            return True
-        return False
+    version = "2025.3.4"
+    risk = 1
         
     def audit(self):
-        if not self.condition():
+        if not (self.requests.suffix == ".js" or 1 in conf.risk):
             return
         for name, _ in rules.items():
             texts = re.findall(_, self.response.text, re.M | re.I)

@@ -10,9 +10,11 @@ from api import generateResponse, random_num, PLACE, VulType, Type, PluginBase, 
 class Z0SCAN(PluginBase):
     name = 'webpack'
     desc = "The leak of webpack sources"
+    version = "2025.5.8"
+    risk = 1
 
     def audit(self):
-        if conf.level == 0:
+        if conf.level == 0 or not 1 in conf.risk:
             return False
         if self.requests.suffix.lower() == '.js':
             new_url = self.requests.url + ".map"

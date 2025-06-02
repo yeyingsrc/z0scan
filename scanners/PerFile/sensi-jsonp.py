@@ -13,7 +13,7 @@ import re
 from copy import deepcopy
 from pyjsparser import parse
 
-from api import random_str, VulType, PLACE, Type, PluginBase, conf
+from api import random_str, VulType, PLACE, Type, PluginBase, conf, POST_HINT
 from lib.helper.helper_sensitive import sensitive_bankcard, sensitive_idcard, sensitive_phone, sensitive_email
 from lib.helper.jscontext import analyse_Literal
 
@@ -21,9 +21,8 @@ from lib.helper.jscontext import analyse_Literal
 class Z0SCAN(PluginBase):
     name = "sensi-jsonp"
     desc = 'JSONP Sensitive Finder'
-
-    def condition(self):
-        return True
+    version = "2025.3.4"
+    risk = 1
     
     def jsonp_load(self, jsonp):
         match = re.search(r'^[^(]*?\((.*)\)[^)]*$', jsonp)
@@ -76,7 +75,7 @@ class Z0SCAN(PluginBase):
         return result
 
     def audit(self):
-        if not self.condition():
+        if not (1 in conf.risk or self.requests.post_hint == POST_HINT.JSON):
             return
         callbaks = ["callback", "cb", "json"]
         params = deepcopy(self.requests.params)

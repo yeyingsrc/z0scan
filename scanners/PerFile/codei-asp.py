@@ -12,17 +12,13 @@ from api import PluginBase, conf, VulType, generateResponse, Type, logger
 class Z0SCAN(PluginBase):
     name = "codei-asp"
     desc = 'ASP Code Injection'
-
-    def condition(self):
-        if conf.level == 0:
-            return False
-        for k, v in self.response.programing.items():
-            if k == "ASP" and not self.response.waf:
-                return True
-        return False
+    version = "2025.5.15"
+    risk = 3
         
     def audit(self):
-        if self.condition():
+        if conf.level == 0 or not 3 in conf.risk:
+            return
+        if self.fingerprints.programing.get("PHP", False) and not self.fingerprints.waf:
             randint1 = random.randint(10000, 90000)
             randint2 = random.randint(10000, 90000)
             randint3 = randint1 * randint2

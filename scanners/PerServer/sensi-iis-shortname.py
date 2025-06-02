@@ -4,20 +4,16 @@
 
 import requests
 from urllib.parse import urlparse
-from api import VulType, PLACE, HTTPMETHOD, Type, PluginBase, KB, generateResponse
+from api import VulType, PLACE, HTTPMETHOD, Type, PluginBase, KB, generateResponse, conf
 
 class Z0SCAN(PluginBase):
     name = "sensi-iis-shortname"
     desc = 'Iis File ShortName'
-        
-    def condition(self):
-        for k, v in self.response.webserver.items():
-            if k == "IIS":
-                return True
-        return False
-        
+    version = "2025.3.1"
+    risk = 0
+    
     def audit(self):
-        if self.condition():
+        if self.fingerprints.webserver.get("IIS") and 0 in conf.risk and conf.level != 0:
             existed_path = '/*~1*/a.aspx'
             not_existed_path = '/JiuZer0~1*/a.aspx'
             r1 = requests.get(self.requests.netloc + existed_path)

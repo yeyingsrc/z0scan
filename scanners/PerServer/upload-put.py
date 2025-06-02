@@ -8,6 +8,8 @@ import requests
 class Z0SCAN(PluginBase):
     name = "upload-put"
     desc = "Detect the vulnerability of uploading arbitrary files by PUT method"
+    version = "2025.5.7"
+    risk = 3
     
     def _put_upload(self):
         filename = f"{random_str(8)}_{random_num(6)}.txt"
@@ -26,11 +28,8 @@ class Z0SCAN(PluginBase):
             pass
         return None
     
-    def condition(self):
-        return True
-    
     def audit(self):
-        if not self.condition():
+        if conf.level == 0 or not 3 in conf.risk:
             return
         if r := self._put_upload():
             r1, r2 = r

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# w8ay 2019/6/29
 # JiuZero 2025/5/11
 
 import re, requests
@@ -10,9 +9,12 @@ from api import VulType, PLACE, PluginBase, Type, conf, generateResponse
 class Z0SCAN(PluginBase):
     name = "trave-list"
     desc = "List"
+    version = "2025.5.11"
+    risk = 2
 
     def audit(self):
-
+        if not 2 in conf.risk or conf.level == 0:
+            return
         resp_str = self.response.text
         flag_list = [
             "directory listing for",
@@ -37,7 +39,10 @@ class Z0SCAN(PluginBase):
                 self.success(result)
                 return
         # Vulscan
-        title = re.findall(r"<title>(.*)</title>", resp_str.lower())[0]
+        match = re.search(r"<title>(.*?)</title>", resp_str.lower(), re.DOTALL)
+        if not match:
+            return
+        title = match.group(1)
         if "index of" in title or "everything" in title:
             result = self.generate_result()
             result.main({
@@ -54,11 +59,11 @@ class Z0SCAN(PluginBase):
             return
         if conf.level == 3:
             r = requests.request("GET", self.requests.netloc + "/.listing", allow_redirects=True, verify=False)
-            # 判断写得有些草率…未来再改
+            # 判断写得有些草率…后面再改
             if r.status_code == 200:
                 result = self.generate_result()
                 result.main({
-                    "type": Type.REQUEST, 
+                    "type": Type.ANALYZE, 
                     "url": self.requests.netloc + "/.listing", 
                     "vultype": VulType.OTHER
                     })

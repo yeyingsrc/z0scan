@@ -6,14 +6,14 @@ from lib.helper.helper_socket import socket_send_withssl, socket_send
 from api import generateResponse, VulType, PLACE, HTTPMETHOD, PluginBase, conf, KB, Type
 
 class Z0SCAN(PluginBase):
-    name = "other-webdavFile"
+    name = "other-webdav-passive"
     desc = 'Webdav Finder'
-        
-    def condition(self):
-        return True
-        
+    version = "2025.5.15"
+    risk = 0
+    
     def audit(self):
-        if self.condition():
+        # 通过检测拓展协议判断为Webdav
+        if 0 in conf.risk:
             keys = ["translate","if","lock-token"]
             for k, v in self.requests.headers.items():
                 if k.lower() in keys:

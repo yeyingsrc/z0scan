@@ -3,9 +3,7 @@
 # w8ay 2019/6/28
 # JiuZero 2025/5/7
 
-import copy, threading, time, traceback, config
-import keyboard
-
+import copy, threading, time, traceback
 from lib.core.data import KB, conf
 from lib.core.log import logger, dataToStdout, colors
 
@@ -29,8 +27,7 @@ def run_threads(num_threads, thread_function, args: tuple = ()):
 
         # Start the threads
         for num_threads in range(num_threads):
-            thread = threading.Thread(target=exception_handled_function, name=str(num_threads),
-                                      args=(thread_function, args))
+            thread = threading.Thread(target=exception_handled_function, name=str(num_threads), args=(thread_function, args))
             thread.setDaemon(True)
             try:
                 thread.start()
@@ -65,54 +62,33 @@ def start():
     run_threads(conf.threads, task_run)
 
 def task_run():
-    def on_press(key):
-        try:
-            if key.name == 'esc':  # 显示扫描状态
-                KB.esc_triggered = True
-            elif key.name == 'enter':
-                if not KB.pause:  # 停止将监听流量发送到扫描任务
-                    logger.info("Stop to sending requests to scanners")
-                    KB.pause = True
-                else:  # 恢复
-                    logger.info("Refresh to sending requests to scanners")
-                    KB.pause = False
-        except AttributeError:
-            pass
-    keyboard.on_press(on_press)
-    try:
-        while KB["continue"] or not KB["task_queue"].empty():
-            poc_module_name, request, response = KB["task_queue"].get()
-            KB.lock.acquire()
-            KB.running += 1
-            if poc_module_name not in KB.running_plugins:
-                KB.running_plugins[poc_module_name] = 0
-            KB.running_plugins[poc_module_name] += 1
-            KB.lock.release()
-            if KB.esc_triggered:
-                printProgress()
-                KB.esc_triggered = False
-            poc_module = copy.deepcopy(KB["registered"][poc_module_name])
-            poc_module.execute(request, response)
-            KB.lock.acquire()
-            KB.finished += 1
-            KB.running -= 1
-            KB.running_plugins[poc_module_name] -= 1
-            if KB.running_plugins[poc_module_name] == 0:
-                del KB.running_plugins[poc_module_name]
-            KB.lock.release()
-            if KB.esc_triggered:
-                printProgress()
-                KB.esc_triggered = False
-        if KB.esc_triggered:
-            printProgress()
-            KB.esc_triggered = False
-    finally:
-        keyboard.unhook_all()
+    while KB["continue"] or not KB["task_queue"].empty():
+        poc_module_name, request, response = KB["task_queue"].get()
+        KB.lock.acquire()
+        KB.running += 1
+        if poc_module_name not in KB.running_plugins:
+            KB.running_plugins[poc_module_name] = 0
+        KB.running_plugins[poc_module_name] += 1
+        KB.lock.release()
+        printProgress()
+        poc_module = copy.deepcopy(KB["registered"][poc_module_name])
+        poc_module.execute(request, response)
+        KB.lock.acquire()
+        KB.finished += 1
+        KB.running -= 1
+        KB.running_plugins[poc_module_name] -= 1
+        if KB.running_plugins[poc_module_name] == 0:
+            del KB.running_plugins[poc_module_name]
+        KB.lock.release()
+        printProgress()
+    printProgress()
+
 
 def printProgress():
-    KB.lock.acquire()
-    logger.info(f'{colors.g}{KB.output.count():d}{colors.e} SUCCESS | {colors.g}{KB.running:d}{colors.e} RUNNING | {colors.g}{KB.task_queue.qsize():d}{colors.e} REMAIN | {colors.g}{KB.finished:d}{colors.e} SCANNED IN {time.time()-KB.start_time:.2f}s')
-    KB.lock.release()
+    if conf.scan_status:
+        KB.lock.acquire()
+        dataToStdout(f'{colors.g}{KB.output.count():d}{colors.e} SUCCESS | {colors.g}{KB.running:d}{colors.e} RUNNING | {colors.g}{KB.task_queue.qsize():d}{colors.e} REMAIN | {colors.g}{KB.finished:d}{colors.e} SCANNED IN {time.time()-KB.start_time:.2f}s')
+        KB.lock.release()
 
 
 def task_push(plugin_type, request, response):

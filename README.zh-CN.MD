@@ -1,7 +1,7 @@
 ![z0scan](https://socialify.git.ci/JiuZero/z0scan/image?description=1&font=Source+Code+Pro&name=1&owner=1&pattern=Solid&theme=Auto)
 
 <h4 align="center" dir="auto">
-  中文 | <a href="https://github.com/JiuZero/z0scan/blob/master/README.MD">English</a> | <a href="https://github.com/JiuZero/z0scan-report">ReportSource</a>
+  中文 | <a href="https://github.com/JiuZero/z0scan/blob/master/README.MD">English</a>
 </p>
 
 <p align="center">
@@ -24,26 +24,17 @@
 ## 🌟 优势
 
 1. WAF判断、指纹信息与插件扫描的联动
-**「更少的WAF触发、更低的请求量、精准切入」**
-
-2. 伪静态的支持与其它漏洞的支持
-**「更宽的检索面」**
-
-3. 辅助发现敏感信息与潜在漏洞
-**「辅助发现能力」**
-
-4. 以SQLite3提供扫描记录等数据储存支持
-**「大规模、高效」**
-
-5. 基于Python3开源
-**「高自定义」**
+2. 能够解析伪静态、XML等复杂格式中的潜在参数（Beta）
+3. 以SQLite3提供扫描记录等数据储存支持
+4. 基于Python3开源并提供全平台支持
+5. 支持IPV6解析域名（Beta）
 
 ## 🔧 安装
 
 通过**Pypi**安装
 ```bash
 pip install z0scan
-z0scan
+z0
 ```
 
 通过**GitHub**克隆安装
@@ -51,21 +42,27 @@ z0scan
 git clone https://github.com/JiuZero/z0scan
 cd z0scan
 pip install -r requirements.txt
-python3 z0scan.py
+python3 z0.py
 ```
 
 ## 🚀 使用
 
+
 ```
-usage: z0scan [options]
+usage: z0 [command options] [arguments...] scan [-h] [-s SERVER_ADDR] [-u URL]
+                                                [-f URL_FILE] [-p PROXY]
+                                                [--timeout TIMEOUT]
+                                                [--retry RETRY]
+                                                [--random-agent] [--html]
+                                                [--json JSON] [-t THREADS]
+                                                [-l {0,1,2,3}] [-r RISK] [-c]
+                                                [-iw] [-sf] [-sc]
+                                                [--disable DISABLE]
+                                                [--able ABLE]
+                                                [--debug {1,2,3}]
 
 options:
   -h, --help            show this help message and exit
-  -v, --version         Show program's version number and exit
-  --debug               Show programs's exception
-  -l LEVEL, --level LEVEL
-                        Different level use different kind of scanner (Default
-                        2)
 
 Proxy:
   Passive Agent Mode Options
@@ -80,7 +77,7 @@ Target:
   -f URL_FILE, --file URL_FILE
                         Scan multiple targets given in a textual file
 
-Request1:
+Request:
   Network request options
 
   -p PROXY, --proxy PROXY
@@ -104,85 +101,76 @@ Optimization:
 
   -t THREADS, --threads THREADS
                         Max number of concurrent network requests (Default 31)
+  -l {0,1,2,3}, --level {0,1,2,3}
+                        Different level use different payloads: 0-3 (Default
+                        2)
+  -r RISK, --risk RISK  Different risk use different kind of scanners: [0, 1,
+                        2, 3] (Default [0, 1, 2, 3])
+  -c, --concise         Concise output like w13scan
   -iw, --ignore-waf     Ignore the WAF during detection
   -sf, --skip-fingerprint
                         Skip the scan to fingerprints
   -sc, --scan-cookie    Scan cookie during detection
   --disable DISABLE     Disable some scanners.
-  --able ABLE           Only enable scanners.
+  --able ABLE           Only enable scanners
+  --debug {1,2,3}       Show programs's exception: 1-3
 ```
 
-## 🎉 ️插件列表
+## ✨ ️插件列表
 
 - PerFile
 
-|插件名称|插件简述|
-|:---:|:----:|
-|sqli-bool|SQL布尔盲注检测|
-|sqli-time|SQL时间盲注检测|
-|sqli-error|SQL报错注入检测|
-|codei-asp|Asp代码执行|
-|codei-php|Php代码执行|
-|cmdi|命令执行|
-|other-objectdese|反序列参数分析|
-|sensi-js|Js敏感信息泄露|
-|sensi-jsonp|Js敏感信息泄露|
-|sensi-php-realpath|Php真实目录发现|
-|redirect|重定向|
-|webpack|webpack源码泄露|
-|other-webdavFile|webdav发现（PerFile）|
-|xpathi-error|基于报错的XPATH注入检测|
-|trave-path|路径穿越|
-|sensi-backupFile|基于文件的备份文件检测|
-|sensi-viewstate|未加密的VIEWSTATE发现|
+|插件名称|插件简述|Risk|
+|:---:|:----:|:----:|
+|sqli-bool|SQL布尔盲注检测|2|
+|sqli-time|SQL时间盲注检测|2|
+|sqli-error|SQL报错注入检测|2|
+|codei-asp|Asp代码执行|3|
+|codei-php|Php代码执行|3|
+|cmdi|命令执行|3|
+|other-objectdese|反序列参数分析|3|
+|sensi-js|Js敏感信息泄露|1|
+|sensi-jsonp|Jsonp敏感信息泄露|1|
+|sensi-php-realpath|Php真实目录发现|0|
+|redirect|重定向|1|
+|sensi-webpack|webpack源码泄露|1|
+|other-webdav-passive|webdav服务被动发现|1|
+|xpathi-error|基于报错的XPATH注入检测|2|
+|trave-path|路径穿越|2|
+|sensi-backup|基于文件的备份文件检测|1|
+|sensi-viewstate|未加密的VIEWSTATE发现|0|
+|xss|基于JS语义的XSS扫描|1|
+|crlf|CRLF漏洞检测|2|
+|cors-passive|CORS漏洞检测（被动分析）|2|
+|unauth|未授权访问漏洞|2|
 
 - PerFolder
 
-|插件名称|插件简述|
-|:---:|:----:|
-|sensi-backupFolder|备份文件扫描|
-|trave-list|目录浏览|
-|upload-oss-Folder|OSS文件上传（PerFolder）|
-|sensi-repository|仓库源码泄漏|
-|sensi-php-phpinfo|Phpinfo文件发现|
+|插件名称|插件简述|Risk|
+|:---:|:----:|:----:|
+|sensi-backup|基于各级目录的备份文件扫描|1|
+|trave-list|目录浏览|2|
+|sensi-repository|仓库源码泄漏|1|
+|sensi-php-phpinfo|Phpinfo文件发现|0|
 
 - PerServer
 
-|插件名称|插件简述|
-|:---:|:----:|
-|sensi-iis-shortname|IIS短文件名漏洞检测|
-|other-nginx_iis-parse|IIS与Nginx服务解析漏洞|
-|sensi-errorpage|错误页敏感信息泄露|
-|other-oss-takeover|OSS储存桶接管|
-|xss-net|.NET通杀XSS|
-|other-dns-zonetransfer|DNS域传输漏洞|
-|crlf-nginx|Nginx服务CRLF注入|
-|other-nginx-clearcache|Nginx错误配置-缓存清除|
-|xss-flash|Flash通杀XSS|
-|sensi-nginx-readvar|Nginx错误配置-变量读取|
-|other-idea-parse|Idea目录解析|
-|other-xst|XST漏洞检测|
-|other-webdavPS|webdav发现（PerServer）|
-|upload-put|PUT请求任意文件上传|
-|upload-oss-PS|OSS文件上传（PerServer）|
-|sensi-backupPS|基于域名的备份文件检测|
+|插件名称|插件简述|Risk|
+|:---:|:----:|:----:|
+|sensi-errorpage|错误页敏感信息泄露|0|
+|xss-net|.NET通杀XSS|1|
+|other-dns-zonetransfer|DNS域传送漏洞|1|
+|xss-flash|Flash通杀XSS|1|
+|other-idea-parse|Idea目录解析|1|
+|other-xst|XST漏洞检测|-1|
+|other-webdav-active|webdav服务发现|1|
+|upload-put|基于PUT请求的任意文件上传|3|
+|sensi-backup|基于域名的备份文件检测|1|
+|cors-active|CORS漏洞检测（主动发现）|2|
+|crlf|CRLF换行注入漏洞|2|
 
 - 插件编写规范请见：
 [DEV.MD](https://github.com/JiuZero/z0scan/blob/master/doc/DEV.MD)
-
-## ✨ 参考
-
-在开发z0scan的过程中借鉴了大量的项目，它们包括但不限于：
-```
-- [w13scan](https://github.com/w-digital-scanner/w13scan)
-- [myscan](https://github.com/amcai/myscan)
-- [sqlmap](https://github.com/sqlmapproject/sqlmap)
-- [Vxscan](https://github.com/al0ne/Vxscan)
-- [Sitadel](https://github.com/shenril/Sitadel)
-etc…
-```
-
-- 清单详情请见 [这里](https://github.com/JiuZero/z0scan/blob/master/doc/THANKS.MD)
 
 ## 🔆 更新日记 & 许可
 
@@ -194,6 +182,6 @@ etc…
 
 |平台|联系|
 |:---:|:----:|
+|WeiXin|JiuZer1|
 |QQ|1703417187|
 |Email|jiuzer0@qq.com|
-|WeiXin|JiuZer1|

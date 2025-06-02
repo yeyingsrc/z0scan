@@ -6,20 +6,16 @@ import re
 import requests
 from urllib.parse import urlparse
 
-from api import generateResponse, VulType, PLACE, Type, PluginBase, KB
+from api import generateResponse, VulType, PLACE, Type, PluginBase, KB, conf
 
 class Z0SCAN(PluginBase):
     name = "other-oss-takeover"
     desc = 'OSS Bucket Takeover'
+    version = "2025.3.3"
+    risk = 3
 
-    def condition(self):
-        for k, v in self.response.webserver.items():
-            if k == "OSS":
-                return True
-        return False
-        
     def audit(self):
-        if self.condition():
+        if self.fingerprints.webserver.get("OSS") and 3 in conf.risk:
             r = requests.get(self.requests.netloc + self.variable_leakage, verify=False)
             response_text = r.text.lower()
             for keyword in [

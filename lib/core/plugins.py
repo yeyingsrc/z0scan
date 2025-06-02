@@ -6,15 +6,17 @@
 import copy
 import platform
 import socket
-import sys, re
+import sys, re, json
 import traceback
 import copy
+from types import SimpleNamespace
 from urllib.parse import quote
 
 import requests
 import urllib3
+from io import StringIO
 from urllib import parse
-from concurrent.futures import ThreadPoolExecutor
+import xml.etree.ElementTree as ET
 from requests import ConnectTimeout, HTTPError, TooManyRedirects, ConnectionError
 from urllib3.exceptions import NewConnectionError, PoolError
 from urllib.parse import urlsplit, parse_qs, urlunsplit
@@ -30,6 +32,19 @@ from lib.core.common import splitUrlPath, updateJsonObjectFromStr
 from lib.core.enums import POST_HINT, PLACE, HTTPMETHOD
 from requests.adapters import HTTPAdapter
 
+def _flatten_json_items(data, prefix=''):
+    """生成可迭代的(key_path, value)对"""
+    if isinstance(data, dict):
+        for k, v in data.items():
+            new_prefix = f"{prefix}.{k}" if prefix else k
+            yield from _flatten_json_items(v, new_prefix)
+    elif isinstance(data, list):
+        for i, item in enumerate(data):
+            new_prefix = f"{prefix}[{i}]"
+            yield from _flatten_json_items(item, new_prefix)
+    else:
+        yield (prefix, data)
+
 class PluginBase(object):
 
     def __init__(self):
@@ -37,6 +52,9 @@ class PluginBase(object):
         self.path = None
         self.target = None
         self.allow = None
+        
+        self.fingerprints = SimpleNamespace(waf=False, os={}, programing={}, webserver={})
+        
         self.requests: FakeReq = None
         self.response: FakeResp = None
 
@@ -59,7 +77,7 @@ class PluginBase(object):
 
     def audit(self):
         raise NotImplementedError
-
+    
     def generateItemdatas(self):
         """
         iterdatas = [
@@ -71,13 +89,57 @@ class PluginBase(object):
         if self.requests.params:
             for k, v in self.requests.params.items():
                 iterdatas.append([k, v, PLACE.PARAM])
-        if self.requests.post_data:
+        if self.requests.data:
             if self.requests.post_hint == POST_HINT.NORMAL or self.requests.post_hint == POST_HINT.ARRAY_LIKE:
                 for k, v in self.requests.post_data.items():
-                    iterdatas.append([k, v, PLACE.DATA])
-            '''
+                    iterdatas.append([k, v, PLACE.NORMAL_DATA])
             elif self.requests.post_hint == POST_HINT.JSON:
-            '''
+                try:
+                    json_data = json.loads(self.requests.data)
+                    if isinstance(json_data, dict):
+                        # 处理字典类型
+                        for key_path, value in _flatten_json_items(json_data):
+                            iterdatas.append([key_path, str(value), PLACE.JSON_DATA])
+                    elif isinstance(json_data, list):
+                        # 处理数组类型
+                        for i, item in enumerate(json_data):
+                            if isinstance(item, (dict, list)):
+                                for key_path, value in _flatten_json_items(item, f"array[{i}]"):
+                                    iterdatas.append([key_path, str(value), PLACE.JSON_DATA])
+                            else:
+                                iterdatas.append([f"array[{i}]", str(item), PLACE.JSON_DATA])
+                    else:  # 单值情况
+                        iterdatas.append(["json_value", str(json_data), PLACE.JSON_DATA])
+                except json.JSONDecodeError:
+                    pass
+            elif self.requests.post_hint == POST_HINT.XML:
+                try:
+                    root = ET.fromstring(self.requests.data)
+                    for elem in root.iter():
+                        if elem.text and elem.text.strip():
+                            iterdatas.append([elem.tag, elem.text.strip(), PLACE.XML_DATA])
+                        # 带命名空间
+                        for attr, value in elem.attrib.items():
+                            iterdatas.append([f"{elem.tag}@{attr}", value, PLACE.XML_DATA])
+                except ET.ParseError:
+                    pass
+            elif self.requests.post_hint == POST_HINT.JSON_LIKE:
+                # 有点复杂了，后面再处理
+                pass
+            elif self.requests.post_hint == POST_HINT.MULTIPART:
+                # 从原始数据解析multipart边界
+                content_type = self.requests.headers.get('Content-Type', '')
+                boundary = None
+                if 'boundary=' in content_type:
+                    boundary = content_type.split('boundary=')[1].split(';')[0].strip()
+                if boundary:
+                    parts = self.requests.data.split(f'--{boundary}')
+                    for part in parts:
+                        if 'name="' in part:
+                            name = part.split('name="')[1].split('"')[0]
+                            # 这里简单处理下，有时间再研究着改一下
+                            value_part = part.split('\r\n\r\n', 1)[1].rsplit('\r\n', 1)[0]
+                            iterdatas.append([name, value_part, PLACE.MULTIPART_DATA])
         if conf.scan_cookie and self.requests.cookies:
             for k, v in self.requests.cookies.items():
                 iterdatas.append([k, v, PLACE.COOKIE])
@@ -90,12 +152,137 @@ class PluginBase(object):
                     iterdatas.append([k, v, PLACE.URL])
         return iterdatas
 
+    def inject_json_payload(self, original_json, target_key, payload):
+        """
+        JSON数据payload注入核心方法
+        :param original_json: 原始JSON字符串
+        :param target_key: 目标键路径 (格式如 "user.name", "array[0]", "json_value")
+        :param payload: 要注入的内容
+        :return: 修改后的JSON对象
+        """
+        try:
+            data = json.loads(original_json)
+            def _inject(node, key_parts, payload):
+                current_key = key_parts[0]
+                if current_key.startswith("array["):
+                    index = int(current_key[6:-1])
+                    if isinstance(node, list) and index < len(node):
+                        if len(key_parts) == 1:
+                            node[index] = str(node[index]) + payload
+                        else:
+                            _inject(node[index], key_parts[1:], payload)
+                elif isinstance(node, dict):
+                    if current_key in node:
+                        if len(key_parts) == 1:
+                            node[current_key] = str(node[current_key]) + payload
+                        else:
+                            _inject(node[current_key], key_parts[1:], payload)
+                elif current_key == "json_value" and len(key_parts) == 1:
+                    return str(node) + payload
+                return node
+            if target_key == "json_value":
+                return str(data) + payload
+            else:
+                key_parts = target_key.split('.')
+                _inject(data, key_parts, payload)
+                return data
+        except json.JSONDecodeError:
+            return None
+    
+    def inject_xml_payload(self, xml_data, target_path, payload):
+        """
+        XML数据payload注入处理器
+        :param xml_data: 原始XML字符串
+        :param target_path: 目标路径格式:
+        - "elem1/elem2" (元素路径)
+        - "elem@attr" (属性路径)
+        - "ns:elem" (带命名空间)
+        :param payload: 要注入的字符串
+        :return: 修改后的Element对象
+        """
+        try:
+            root = ET.fromstring(xml_data)
+            # 命名空间处理
+            ns_map = {k if k else 'default': v 
+                    for _, k, v in ET.iterparse(StringIO(xml_data), events=('start-ns',))}
+            # 路径解析
+            if '@' in target_path:
+                elem_path, attr = target_path.split('@')
+                target_elems = root.findall(elem_path, namespaces=ns_map)
+                for elem in target_elems:
+                    if attr in elem.attrib:
+                        elem.attrib[attr] += payload
+            else:
+                target_elems = root.findall(target_path, namespaces=ns_map)
+                for elem in target_elems:
+                    if elem.text is not None:
+                        elem.text = elem.text.strip() + payload
+            return root
+        except ET.ParseError:
+            return None
+    
+    def inject_multipart_payload(self, original_data, content_type, target_field, payload):
+        """
+        Multipart/form-data 数据 payload 注入处理器
+        :param original_data: 原始 multipart 数据 (bytes 或 str)
+        :param content_type: Content-Type 头 (包含 boundary)
+        :param target_field: 目标字段名
+        :param payload: 要注入的字符串
+        :return: 修改后的 multipart 数据 (bytes)
+        """
+        if not original_data:
+            return None
+        # 确保数据为字节类型
+        if isinstance(original_data, str):
+            original_data = original_data.encode('utf-8')
+        # 提取 boundary
+        boundary = None
+        if 'boundary=' in content_type:
+            boundary = content_type.split('boundary=')[1].split(';')[0].strip()
+        if not boundary:
+            logger.warning("无法从Content-Type中提取boundary")
+            return None
+        # 分割各部分
+        boundary_line = f"--{boundary}".encode()
+        parts = original_data.split(boundary_line)
+        modified_parts = []
+        for part in parts:
+            if not part.strip():
+                continue
+            # 解析字段名
+            header_body = part.split(b'\r\n\r\n', 1)
+            if len(header_body) != 2:
+                modified_parts.append(part)
+                continue
+            headers, body = header_body
+            headers = headers.decode('utf-8', errors='ignore')
+            field_name = None
+            if f'name="{target_field}"' in headers:
+                # 找到目标字段
+                body = body.rsplit(b'\r\n', 1)[0]  # 去除末尾可能的分隔符
+                try:
+                    # 尝试解码原始内容 (可能是文本或二进制)
+                    decoded_body = body.decode('utf-8') + payload
+                    body = decoded_body.encode('utf-8')
+                except UnicodeDecodeError:
+                    # 二进制数据直接追加
+                    body = body + payload.encode('utf-8')
+                # 重建 part
+                part = headers.encode('utf-8') + b'\r\n\r\n' + body
+            modified_parts.append(part)
+        # 重建整个 multipart 数据
+        new_data = boundary_line + boundary_line.join(modified_parts)
+        # 确保以 boundary-- 结尾
+        if not new_data.rstrip().endswith(b'--'):
+            new_data += b'--\r\n'
+        return new_data
+    
     def insertPayload(self, datas: dict):
         key = str(datas.get("key", ""))
         value = str(datas.get("value", ""))
         payload = str(datas.get("payload", ""))
         position = str(datas.get("position", ""))
-        if position == PLACE.DATA:
+        if position == PLACE.NORMAL_DATA:
             data = copy.deepcopy(self.requests.post_data)
             data[key] = value + payload
             return data
@@ -103,6 +290,34 @@ class PluginBase(object):
             params = copy.deepcopy(self.requests.params)
             params[key] = value + payload
             return params
+        elif position == PLACE.JSON_DATA:
+            modified_json = self.inject_json_payload(
+                original_json=self.requests.data,
+                target_key=key,
+                payload=payload
+            )
+            if not modified_json:
+                return None
+            return modified_json if isinstance(modified_json, (dict, list)) else json.loads(modified_json) # json=modified
+        elif position == PLACE.XML_DATA:
+            modified_xml = self.inject_xml_payload(
+                xml_data=self.requests.data,
+                target_path=key,  # 如 "root/elem" 或 "elem@attr"
+                payload=payload
+            )
+            if not modified_xml:
+                return None
+            return ET.tostring(modified_xml, encoding='unicode') # data=ET.tostring(modified_xml, encoding='unicode')
+        elif position == PLACE.MULTIPART_DATA:
+            modified_multipart = self.inject_multipart_payload(
+                original_data=self.requests.data,
+                content_type=self.requests.headers.get('Content-Type', ''),
+                target_field=key,  # multipart 字段名
+                payload=payload
+            )
+            if not modified_multipart:
+                return None
+            return modified_multipart # data=modified_multipart
         elif position == PLACE.COOKIE:
             cookies = copy.deepcopy(self.requests.cookies)
             cookies[key] = value + payload
@@ -123,22 +338,27 @@ class PluginBase(object):
         r = False
         if position == PLACE.PARAM:
             url, payload = self.merged_params_requests(self.requests.url, payload)
-            r = requests.get(url, payload, data=self.requests.post_data, headers=self.requests.headers, verify=False, timeout=conf.timeout)
-        elif position == PLACE.DATA:
-            # if hint == POST_HINT.NORMAL:
+            r = requests.get(url, params=payload, data=self.requests.post_data, headers=self.requests.headers)
+        elif position == PLACE.NORMAL_DATA:
             url, params = self.merged_params_requests(self.requests.url, self.requests.params)
-            r = requests.post(url, params=params, data=payload, headers=self.requests.headers, verify=False, timeout=conf.timeout)
-        elif position == PLACE.COOKIE or position == PLACE.HEADER:
+            r = requests.post(url, params=self.requests.params, data=payload, headers=self.requests.headers)
+        elif position == PLACE.JSON_DATA:
+            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers)
+        elif position == PLACE.XML_DATA:
+            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers)
+        elif position == PLACE.MULTIPART_DATA:
+            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers)
+        elif position == PLACE.COOKIE:
             if self.requests.method == HTTPMETHOD.GET:
-                r = requests.get(self.requests.url, params=self.requests.params, data=self.requests.post_data, headers=payload, verify=False, timeout=conf.timeout)
+                r = requests.get(self.requests.url, params=self.requests.params, data=self.requests.post_data, headers=payload)
             elif self.requests.method == HTTPMETHOD.POST:
-                r = requests.post(self.requests.url, params=self.requests.params, data=self.requests.post_data, headers=payload, verify=False, timeout=conf.timeout)
+                r = requests.post(self.requests.url, params=self.requests.params, data=self.requests.post_data, headers=payload)
         elif position == PLACE.URL:
-            payload, params = self.merged_params_requests(payload, self.requests.params)
+            payload, params = self.merged_params_requests(payload, self.requests.params, data=self.requests.post_data, headers=self.requests.headers)
             if self.requests.method == HTTPMETHOD.GET:
-                r = requests.get(payload, params=params, data=self.requests.post_data, headers=self.requests.headers, verify=False, timeout=conf.timeout)
+                r = requests.get(payload, params=params, data=self.requests.post_data, headers=self.requests.headers)
             elif self.requests.method == HTTPMETHOD.POST:
-                r = requests.post(payload, params=params, data=self.requests.post_data, headers=self.requests.headers, verify=False, timeout=conf.timeout)
+                r = requests.post(payload, params=params, data=self.requests.post_data, headers=self.requests.headers)
         # sess.close()
         return r
     
@@ -185,6 +405,7 @@ class PluginBase(object):
                     return
             else:
                 msg = "connect target '{0}' failed!".format(self.requests.hostname)
+                return
                 # Share.dataToStdout('\r' + msg + '\n\r')
 
         except HTTPError as e:
@@ -193,6 +414,7 @@ class PluginBase(object):
         except ConnectionError as e:
             msg = "connect target '{}' failed!".format(self.requests.hostname)
             logger.warning(msg)
+            return
         except requests.exceptions.ChunkedEncodingError:
             pass
         except ConnectionResetError:

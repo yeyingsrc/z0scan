@@ -15,7 +15,7 @@ from lib.core.common import generateResponse, random_str, random_num, md5, updat
 from lib.parse.parse_request import FakeReq
 from lib.parse.parse_response import FakeResp
 from lib.controller.controller import task_push_from_name, task_push, start
-from z0scan import modulePath
+from z0 import modulePath
 
 
 __all__ = [
@@ -29,7 +29,7 @@ __all__ = [
 def scan(url, module_name, conf={}, headers={}):
     root = modulePath()
     cmdline = {
-        "level": 4
+        "level": 3
     }
     cmdline.update(conf)
     init(root, cmdline)

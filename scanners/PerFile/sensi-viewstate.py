@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# 2025/5/2 JiuZero
+# 2025/5/26 JiuZero
 
-from api import VulType, Type, PLACE, PluginBase, generateResponse
+from api import VulType, Type, PLACE, PluginBase, generateResponse, conf
 import base64
 import re
 
 class Z0SCAN(PluginBase):
     name = "sensi-viewstate"
     desc = "Check for unencrypted ASP.NET ViewState parameters"
+    version = "2025.5.26"
+    risk = -1
     
     def find_viewstate(self):
         patterns = [
@@ -26,6 +28,10 @@ class Z0SCAN(PluginBase):
         return list(set(found))
     
     def audit(self):
+        if not (-1 in conf.risk or conf.level != 0):
+            return
+        if not self.fingerprints.programing.get("ASP", False):
+            return
         viewstate_list = self.find_viewstate()
         
         for vs_value in viewstate_list:
@@ -35,14 +41,14 @@ class Z0SCAN(PluginBase):
                 
                 if any(keyword in decoded_str for keyword in ("System.", "Microsoft", "Type")):
                     result = self.generate_result()
-                    position = PLACE.DATA if self.requests.post_data else PLACE.PARAM
+                    position = PLACE.NORMAL_DATA if self.requests.post_data else PLACE.PARAM
                     result.main({
                         "type": Type.ANALYZE, 
                         "url": self.requests.url, 
                         "vultype": VulType.SENSITIVE, 
                         "show": {
                             "Position": position, 
-                            "Msg": "ViewState does not have MAC validation enabled and contains sensitive information", 
+                            "Msg": "ViewState does not have MAC validation enabled. Try for dese?", 
                             "Payload": vs_value
                             }
                         })

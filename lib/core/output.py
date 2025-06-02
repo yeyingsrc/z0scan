@@ -9,7 +9,7 @@ from datetime import datetime
 from threading import Lock
 from urllib.parse import quote
 from lib.core.common import md5
-from lib.core.data import KB, path, conf
+from lib.core.data import path, conf
 from lib.core.log import logger, colors
 from lib.core.settings import VERSION
 from urllib.parse import urlparse
@@ -82,8 +82,7 @@ class OutPut(object):
             with open(self.html_filename, 'a+', encoding='utf-8') as f2:
                 # content = base64.b64encode(json.dumps(output).encode()).decode()
                 content = quote(json.dumps(output), encoding='utf-8')
-                content = "<script class='web-vulns'>webVulns.push(JSON.parse(decodeURIComponent(\"{base64}\")))</script>".format(
-                    base64=content)
+                content = "<script class='web-vulns'>webVulns.push(JSON.parse(decodeURIComponent(\"{base64}\")))</script>".format(base64=content)
                 f2.write(content)
 
         self.lock_file.release()
@@ -97,24 +96,30 @@ class OutPut(object):
         Payload : ' and 1=2--+
         ....
         """
-        msg = "<{}{}{}> | [{}{}{}] [{}{}{}]\n".format(colors.m, str(output["hostname"]), colors.e, colors.m, output["type"], colors.e, colors.m, output["name"], colors.e)
-        msg += "{}URL{} : {}\n".format(colors.cy, colors.e, output["url"])
-        msg += "{}Vultype{} : {}\n".format(colors.cy, colors.e, output["vultype"])
-        if output["show"]:
-            if isinstance(output["show"], dict):
-                for key, value in output["show"].items():
-                    msg += "{}{}{} : {}\n".format(colors.cy, key, colors.e, value)
-            else:
-                logger.warning("`show` need to be a dict, but it's {}".format(type(output["show"])))
-        self.lock_print.acquire()
-        logger.info(msg)
-        self.lock_print.release()
+        if conf.concise_output:
+            self.lock_print.acquire()
+            logger.info("[{}{}{}][{}{}{}] {}".format(colors.cy, output["vultype"], colors.e, colors.m, output["name"], colors.e, output["url"]))
+            self.lock_print.release()
+        else:
+            msg = "<{}{}{}> | [{}{}{}] [{}{}{}]\n".format(colors.m, str(output["hostname"]), colors.e, colors.m, output["type"], colors.e, colors.m, output["name"], colors.e)
+            msg += "{}URL{} : {}\n".format(colors.cy, colors.e, output["url"])
+            msg += "{}Vultype{} : {}\n".format(colors.cy, colors.e, output["vultype"])
+            if output["show"]:
+                if isinstance(output["show"], dict):
+                    for key, value in output["show"].items():
+                        msg += "{}{}{} : {}\n".format(colors.cy, key, colors.e, value)
+                else:
+                    logger.warning("`show` need to be a dict, but it's {}".format(type(output["show"])))
+            self.lock_print.acquire()
+            logger.info(msg)
+            self.lock_print.release()
 
 
 class ResultObject(object):
     def __init__(self, baseplugin):
         self.name = baseplugin.name # 插件名称
         self.path = baseplugin.path # 插件路径
+        self.desc = baseplugin.desc # 插件描述
         self.detail = collections.OrderedDict()
 
     def main(self, datas):
@@ -133,6 +138,7 @@ class ResultObject(object):
         else:
             logger.warning("`main` need to be a dict, but it's {}".format(type(datas)))
             raise
+            
     # 漏洞验证过程的细节展示
     def step(self, name: str, datas):
         if isinstance(datas, dict):
@@ -157,6 +163,7 @@ class ResultObject(object):
         return {
             "name": self.name,#插件名称
             "path": self.path,#插件路径
+            "desc": self.desc,#插件描述
             "type": self.type,#扫描类型
             "hostname": self.hostname,#域名
             "url": self.url,#URL

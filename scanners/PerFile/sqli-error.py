@@ -12,16 +12,11 @@ import re
 class Z0SCAN(PluginBase):
     name = "sqli-error"
     desc = 'SQL Error Finder'
-
-    def condition(self):
-        if conf.level == 0:
-            return False
-        if not self.response.waf:
-            return True
-        return False
+    version = "2025.3.13"
+    risk = 2
         
     def audit(self):
-        if self.condition():
+        if not self.fingerprints.waf and 2 in conf.risk and conf.level != 0:
             _payloads = [
                 ## 宽字节
                 r'鎈\'"\(',
@@ -96,8 +91,7 @@ class Z0SCAN(PluginBase):
                         "url": self.requests.url, 
                         "vultype": VulType.SQLI, 
                         "show": {
-                            "Position": position, 
-                            "Param": k, 
+                            "Position": f"{position} > {k}",
                             "Payload": payload, 
                             "Msg": "DBMS_TYPE Maybe {}; Match {}".format(dbms_type, match.group())
                             }
@@ -110,15 +104,15 @@ class Z0SCAN(PluginBase):
                     self.success(result)
                     return True
             message_lists = sensitive_page_error_message_check(html)
+            # 在SQL报错注入过程中检测到未知报错
             if message_lists:
                 result = self.generate_result()
                 result.main({
                     "type": Type.REQUEST, 
                     "url": self.requests.url, 
-                    "vultype": VulType.SQLI, 
+                    "vultype": VulType.SENSITIVE, 
                     "show": {
-                        "Position": position, 
-                        "Param": k, 
+                        "Position": f"{position} > {k}",
                         "Payload": payload, 
                         "Msg": "Receive Error Msg {}".format(repr(message_lists))
                         }

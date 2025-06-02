@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # w8ay 2019/7/12
 # JiuZero 2025/3/4
-# refer:https://www.t00ls.net/viewthread.php?tid=47698&highlight=%E5%A4%87%E4%BB%BD
-# refer:https://www.t00ls.net/viewthread.php?tid=45430&highlight=%E5%A4%87%E4%BB%BD
+# Refer: https://www.t00ls.net/viewthread.php?tid=47698&highlight=%E5%A4%87%E4%BB%BD
+# Refer: https://www.t00ls.net/viewthread.php?tid=45430&highlight=%E5%A4%87%E4%BB%BD
 
 import os
 import requests
@@ -14,6 +14,8 @@ from api import conf, generateResponse, VulType, PLACE, Type, PluginBase, KB
 class Z0SCAN(PluginBase):
     name = "sensi-backupFolder"
     desc = 'Backup File Of Each Folder'
+    version = "2025.3.4"
+    risk = 1
 
     def _check(self, content):
         """
@@ -39,12 +41,9 @@ class Z0SCAN(PluginBase):
             if content.startswith(i):
                 return True
         return False
-    
-    def condition(self):
-        return True
         
     def audit(self):
-        if self.condition():
+        if 1 in conf.risk and conf.level != 0:
             file_dic = KB.dicts["backup"]
             url = self.requests.url.rstrip("/")
             directory = os.path.basename(url)

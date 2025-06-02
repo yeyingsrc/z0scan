@@ -79,6 +79,7 @@ def initPlugins():
                 logger.error('Not "{}" attribute in the plugin: {}'.format(e, filename))
             except AttributeError as e:
                 logger.error('Filename: {} not class "{}", Reason: {}'.format(filename, 'Z0SCAN', e))
+                raise
     logger.info('Load scanner plugins: {}{}{}'.format(colors.y, len(KB["registered"])-1, colors.e))
 
     # 加载指纹识别插件
@@ -143,7 +144,7 @@ def _set_conf():
             splits = conf["server_addr"].split(":", 2)
             conf["server_addr"] = tuple([splits[0], int(splits[1])])
         else:
-            conf["server_addr"] = tuple([conf["server_addr"], conf.DEFAULT_PROXY_PORT])
+            conf["server_addr"] = tuple([conf["server_addr"], conf.default_proxy_port])
 
     # threads
     conf["threads"] = int(conf["threads"])
@@ -179,7 +180,16 @@ def _init_stdout():
     if conf.html:
         logger.info("Html will be saved in '{}'".format(KB.output.get_html_filename()))
     logger.info("Result will be saved in '{}'".format(KB.output.get_filename()))
-    
+
+def env_check():
+    # Check if running in Termux environment
+    try:
+        if 'com.termux' in os.environ.get('PREFIX', ""):
+            KB.env = "termux"
+            logger.warning("Keyboard listening will not work in Termux")
+    except Exception as e:
+        pass
+
 def init(root, cmdline):
     cinit(autoreset=True)
     setPaths(root)
@@ -187,6 +197,7 @@ def init(root, cmdline):
     _merge_options(cmdline)
     _set_conf()
     initKb()
+    # env_check()
     initPlugins()
     initdb(root)
     _init_stdout()

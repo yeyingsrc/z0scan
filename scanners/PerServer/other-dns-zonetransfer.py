@@ -12,14 +12,11 @@ from api import generateResponse, VulType, PLACE, HTTPMETHOD, PluginBase, conf, 
 class Z0SCAN(PluginBase):
     name = "other-dns-zonetransfer"
     desc = 'DNS zone transfer'
-        
-    def condition(self):
-        if conf.level == 0 or is_ipaddr(self.requests.hostname):
-            return False
-        return True
-        
+    version = "2025.5.11"
+    risk = 1
+    
     def audit(self):
-        if self.condition():
+        if not (conf.level == 0 or is_ipaddr(self.requests.hostname)) and 1 in conf.risk:
             domains = self.split_domain_and_check(self.requests.hostname)
             if domains:
                 for domain in domains:

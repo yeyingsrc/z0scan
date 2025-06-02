@@ -12,15 +12,11 @@ from lib.helper.helper_phpinfo import get_phpinfo
 class Z0SCAN(PluginBase):
     name = "sensi-php-phpinfo"
     desc = 'Phpinfo Finder'
+    version = "2025.3.4"
+    risk = 0
     
-    def condition(self):
-        for k, v in self.response.programing.items():
-            if k == "PHP":
-                return True
-        return False
-        
     def audit(self):
-        if self.condition():
+        if self.fingerprints.programing.get("PHP", False) and 0 in conf.risk and conf.level != 0:
             headers = self.requests.headers.copy()
             for phpinfo in KB.dicts["phpinfo"]:
                 testURL = self.requests.netloc.rstrip("/") + "/" + phpinfo

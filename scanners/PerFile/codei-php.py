@@ -13,17 +13,13 @@ from lib.helper.helper_sensitive import sensitive_page_error_message_check
 class Z0SCAN(PluginBase):
     name = "codei-php"
     desc = 'PHP Code Injection'
-
-    def condition(self):
-        if conf.level == 0:
-            return False
-        for k, v in self.response.programing.items():
-            if k == "PHP" and not self.response.waf:
-                return True
-            return False
+    version = "2025.5.15"
+    risk = 3
             
     def audit(self):
-        if self.condition():
+        if conf.level == 0 or not 3 in conf.risk:
+            return
+        if self.fingerprints.programing.get("PHP", False) and not self.fingerprints.waf:
             regx = r'Parse error: syntax error,.*?\sin\s'
             randint = random.randint(5120, 10240)
             verify_result = md5(str(randint).encode())

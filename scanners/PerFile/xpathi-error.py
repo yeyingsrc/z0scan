@@ -11,11 +11,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 class Z0SCAN(PluginBase):
     name = "xpathi-error"
     desc = 'XPath Injection'
+    version = "2025.3.18"
+    risk = 2
 
     def condition(self):
-        if conf.level == 0:
+        if conf.level == 0 or not 2 in conf.risk:
             return False
-        if not self.response.waf:
+        if not self.fingerprints.waf:
             return True
         return False
 
@@ -110,8 +112,7 @@ class Z0SCAN(PluginBase):
                 "url": self.requests.url, 
                 "vultype": VulType.OTHER, 
                 "show": {
-                    "Position": position, 
-                    "Param": k, 
+                    "Position": f"{position} > {k}",
                     "Payload": payload
                     }
                 })

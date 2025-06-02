@@ -14,17 +14,13 @@ from api import conf, HTTPMETHOD, PLACE, VulType, Type, PluginBase, logger
 class Z0SCAN(PluginBase):
     name = "sensi-php-realpath"
     desc = 'Php Real Path Finder'
-    
-    def condition(self):
-        if conf.level == 0:
-            return False
-        for k, v in self.response.programing.items():
-            if k == "PHP":
-                return True
-        return False
+    version = "2025.3.4"
+    risk = 0
         
     def audit(self):
-        if self.condition():
+        if conf.level == 0 or not 0 in conf.risk or conf.level == 0:
+            return
+        if self.fingerprints.programing.get("PHP", False):
             headers = deepcopy(self.requests.headers)
             iterdatas = self.generateItemdatas()
             with ThreadPoolExecutor(max_workers=None) as executor:

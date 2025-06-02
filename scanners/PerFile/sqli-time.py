@@ -10,6 +10,8 @@ from api import generateResponse, random_num, PLACE, VulType, Type, PluginBase, 
 class Z0SCAN(PluginBase):
     name = 'sqli-time'
     desc = "Delay Time SQLi Injection"
+    version = "2025.5.11"
+    risk = 2
     
     sleep_time = conf.sqli_time
     sleep_str = "[SLEEP_TIME]"
@@ -20,16 +22,8 @@ class Z0SCAN(PluginBase):
         payload0 = payloadTemplate.replace(self.sleep_str, "0")
         return payload1, payload0
     
-    def condition(self):
-        if conf.level == 0:
-            return False
-        if not self.response.waf:
-            return True
-        return False
-    
-    
     def audit(self):
-        if not self.condition():
+        if self.fingerprints.waf or not 2 in conf.risk or conf.level == 0:
             return
         num = random_num(4)
         sql_times = {

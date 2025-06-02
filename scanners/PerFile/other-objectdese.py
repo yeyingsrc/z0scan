@@ -10,9 +10,8 @@ from api import PluginBase, VulType, isJavaObjectDeserialization, isPHPObjectDes
 class Z0SCAN(PluginBase):
     name = "objectdese"
     desc = 'ObjectDeserialization Finder'
-
-    def condition(self):
-        return True
+    version = "2025.3.4"
+    risk = 3
     
     def _check(self, k, v, position):
         whats = None
@@ -43,26 +42,23 @@ class Z0SCAN(PluginBase):
             self.success(result)
 
     def audit(self):
-        if not self.condition():
+        if not 3 in conf.risk or conf.level == 0:
             return
         params = deepcopy(self.requests.params)
         data = deepcopy(self.requests.post_data)
         cookies = deepcopy(self.requests.cookies)
-
         if params:
             for k, v in params.items():
                 if len(v) > 1024:
                     continue
                 self._check(k, v, PLACE.PARAM)
-
         if data:
             for k, v in data.items():
                 if len(v) > 1024:
                     continue
-                self._check(k, v, PLACE.DATA)
-
+                self._check(k, v, PLACE.NORMAL_DATA)
         if cookies:
             for k, v in cookies.items():
                 if len(v) > 1024:
                     continue
-                self._check(k, v, PLACE.HEADER)
+                self._check(k, v, PLACE.COOKIE)

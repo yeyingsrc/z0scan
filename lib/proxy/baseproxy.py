@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Reference: https://github.com/qiyeboy/BaseProxy
 # qiye 2018/6/15
 # JiuZero 2025/4/11
 
@@ -712,7 +713,7 @@ class MitmProxy(HTTPServer):
 
     def __init__(self, server_addr=('', 8788), request_handler_class=ProxyHandle, bind_and_activate=True, https=True):
         HTTPServer.__init__(self, server_addr, request_handler_class, bind_and_activate)
-        logger.info('HTTPServer is running at address(\'%s\',\'%d\')......' % (server_addr[0], server_addr[1]))
+        logger.info('HTTPServer is running at address(\'%s\',\'%d\')...' % (server_addr[0], server_addr[1]))
         self.req_plugs = []
         self.ca = CAAuth(ca_file="ca.pem", cert_file='ca.crt')
         self.https = https

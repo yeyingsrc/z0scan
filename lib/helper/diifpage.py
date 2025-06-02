@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# @Time    : 2019/6/30 11:57 AM
-# @Author  : w8ay
-# @File    : diifpage.py
+# Reference: https://github.com/sqlmapproject/sqlmap
+
 import re
 from difflib import SequenceMatcher
 from functools import reduce
