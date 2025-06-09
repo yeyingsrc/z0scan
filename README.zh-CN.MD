@@ -1,7 +1,7 @@
 ![z0scan](https://socialify.git.ci/JiuZero/z0scan/image?description=1&font=Source+Code+Pro&name=1&owner=1&pattern=Solid&theme=Auto)
 
 <h4 align="center" dir="auto">
-  中文 | <a href="https://github.com/JiuZero/z0scan/blob/master/README.MD">English</a>
+  中文 | <a href="https://github.com/JiuZero/z0scan/blob/master/README.MD">English</a> | <a href="https://github.com/JiuZero/z0scan/blob/master/doc/DEV.MD">Document</a>
 </p>
 
 <p align="center">
@@ -105,7 +105,7 @@ Optimization:
                         Different level use different payloads: 0-3 (Default
                         2)
   -r RISK, --risk RISK  Different risk use different kind of scanners: [0, 1,
-                        2, 3] (Default [0, 1, 2, 3])
+                        2, 3] (Default [0, 1, 2])
   -c, --concise         Concise output like w13scan
   -iw, --ignore-waf     Ignore the WAF during detection
   -sf, --skip-fingerprint
@@ -143,6 +143,9 @@ Optimization:
 |crlf|CRLF漏洞检测|2|
 |cors-passive|CORS漏洞检测（被动分析）|2|
 |unauth|未授权访问漏洞|2|
+|leakpwd-page-passive|后台登陆页弱口令|2|
+|sensi-editfile|编辑器备份文件泄露|1|
+|sensi-sourcecode|源码泄露|1|
 
 - PerFolder
 
@@ -152,6 +155,7 @@ Optimization:
 |trave-list|目录浏览|2|
 |sensi-repository|仓库源码泄漏|1|
 |sensi-php-phpinfo|Phpinfo文件发现|0|
+|upload-oss|OSS储存桶任意文件上传|2|
 
 - PerServer
 
@@ -168,9 +172,10 @@ Optimization:
 |sensi-backup|基于域名的备份文件检测|1|
 |cors-active|CORS漏洞检测（主动发现）|2|
 |crlf|CRLF换行注入漏洞|2|
+|other-hosti|Host头注入攻击检测|1|
+|other-oss-takeover|OSS储存桶接管漏洞|3|
+|sensi-iis-shortname|IIS短文件名漏洞|0|
 
-- 插件编写规范请见：
-[DEV.MD](https://github.com/JiuZero/z0scan/blob/master/doc/DEV.MD)
 
 ## 🔆 更新日记 & 许可
 

@@ -8,7 +8,7 @@ from api import VulType, PLACE, HTTPMETHOD, Type, PluginBase, KB, generateRespon
 
 class Z0SCAN(PluginBase):
     name = "sensi-iis-shortname"
-    desc = 'Iis File ShortName'
+    desc = 'IIS File ShortName'
     version = "2025.3.1"
     risk = 0
     

@@ -20,7 +20,6 @@ class OutPut(object):
         self.collect = []
         self.lock_count = Lock()
         self.lock_file = Lock()
-        self.lock_print = Lock()
         self.result_set = set()
 
         folder_name = datetime.today().strftime("%m_%d_%Y")
@@ -97,9 +96,7 @@ class OutPut(object):
         ....
         """
         if conf.concise_output:
-            self.lock_print.acquire()
             logger.info("[{}{}{}][{}{}{}] {}".format(colors.cy, output["vultype"], colors.e, colors.m, output["name"], colors.e, output["url"]))
-            self.lock_print.release()
         else:
             msg = "<{}{}{}> | [{}{}{}] [{}{}{}]\n".format(colors.m, str(output["hostname"]), colors.e, colors.m, output["type"], colors.e, colors.m, output["name"], colors.e)
             msg += "{}URL{} : {}\n".format(colors.cy, colors.e, output["url"])
@@ -110,9 +107,7 @@ class OutPut(object):
                         msg += "{}{}{} : {}\n".format(colors.cy, key, colors.e, value)
                 else:
                     logger.warning("`show` need to be a dict, but it's {}".format(type(output["show"])))
-            self.lock_print.acquire()
             logger.info(msg)
-            self.lock_print.release()
 
 
 class ResultObject(object):

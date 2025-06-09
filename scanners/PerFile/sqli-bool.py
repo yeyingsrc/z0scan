@@ -143,12 +143,10 @@ class Z0SCAN(PluginBase):
                     try:
                         future.result()
                     except Exception as task_e:
-                        raise
                         logger.error(f"Task failed: {task_e}", origin=self.name)
             except KeyboardInterrupt:
                 executor.shutdown(wait=False)
             except Exception as e:
-                raise
                 logger.error(f"Unexpected error: {e}", origin=self.name)
                 executor.shutdown(wait=False)
                     

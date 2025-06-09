@@ -79,16 +79,15 @@ class Z0SCAN(PluginBase):
         
         lower_headers = {k.lower(): v for k, v in self.response.headers.items()}
         for name, values in KB["fingerprint"].items():
-            for mod in values:
-                m, version = mod.fingerprint(self.requests.suffix.lower(), lower_headers, self.response.text)
-                if isinstance(m, str):
-                    if name == "os" and m not in self.fingerprints.os:
-                        self.fingerprints.os[m] = version
-                    elif name == "webserver" and m not in self.fingerprints.webserver:
-                        self.fingerprints.webserver[m] = version
-                    elif name == "programing" and m not in self.fingerprints.programing:
-                        self.fingerprints.programing[m] = version
-        
+            if not getattr(self.fingerprints, name):
+                _result = {}
+                for mod in values:
+                    m, version = mod.fingerprint(self.requests.suffix.lower(), lower_headers, self.response.text)
+                    if isinstance(m, str):
+                        _result[m] = version
+                if _result:
+                    setattr(self.fingerprints, name, _result)
+
         # PerFile
         if KB["spiderset"].add(url, 'PerFile'):
             task_push('PerFile', self.requests, self.response)
@@ -100,7 +99,6 @@ class Z0SCAN(PluginBase):
             fake_req = FakeReq(domain, headers, HTTPMETHOD.GET, "")
             fake_resp = FakeResp(req.status_code, req.content, req.headers)
             task_push('PerServer', fake_req, fake_resp)
-
         # PerFolder
         urls = set(get_parent_paths(url))
         for parent_url in urls:

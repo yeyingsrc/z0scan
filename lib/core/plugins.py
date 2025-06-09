@@ -46,15 +46,13 @@ def _flatten_json_items(data, prefix=''):
         yield (prefix, data)
 
 class PluginBase(object):
-
+    fingerprints = SimpleNamespace(waf=False, os={}, programing={}, webserver={})
     def __init__(self):
         self.type = None
         self.path = None
         self.target = None
         self.allow = None
-        
-        self.fingerprints = SimpleNamespace(waf=False, os={}, programing={}, webserver={})
-        
+
         self.requests: FakeReq = None
         self.response: FakeResp = None
 
@@ -410,10 +408,14 @@ class PluginBase(object):
 
         except HTTPError as e:
             msg = 'Plugin: {0} HTTPError occurs, start it over.'.format(self.requests.hostname)
+            KB.lock.acquire()
             logger.warning(msg)
+            KB.lock.release()
         except ConnectionError as e:
+            KB.lock.acquire()
             msg = "connect target '{}' failed!".format(self.requests.hostname)
             logger.warning(msg)
+            KB.lock.release()
             return
         except requests.exceptions.ChunkedEncodingError:
             pass

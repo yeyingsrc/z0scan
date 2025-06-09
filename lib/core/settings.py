@@ -5,14 +5,14 @@
 from lib.core.log import colors
 
 # z0scan version <year><month><day><type>
-VERSION = '2025.6.2.0'
-TYPE = " -dev- " if VERSION.split('.')[-1] == '0' else "stable"
+VERSION = '2035.6.9.0'
+TYPE = " -dev- " # 'stable'
 SITE = 'https://github.com/JiuZero/z0scan'
 DEFAULT_USER_AGENT = "z0scan/#v%s (%s)" % (VERSION, SITE)
 
 banner = r"""
 {cy}__  _     
-{cy} / (.\   {m}~ Z0SCAN {y}{t} {b}{v} ~
+{cy} / (.\      {m}~ Z0SCAN {y}{t} {b}{v} ~
 {cy}/_  \_) {g}{s}{e}
 
 """.format(s=SITE, v=VERSION, t=TYPE, m=colors.m, y=colors.y, cy=colors.cy, g=colors.g, b=colors.b, e=colors.e)

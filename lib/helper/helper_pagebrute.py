@@ -1,14 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from urllib.parse import urlparse
 from lib.core.data import conf
-import requests
 from bs4 import BeautifulSoup as BS
 import re
 from lib.core.log import logger
+from data.rule.cms_loginpage import rules as cmsLogin
 
 
 class Parser:
     id = 0
-    url = ''
     post_path = ''
     resp_content = ''
     form_content = ''
@@ -17,26 +19,33 @@ class Parser:
     data = ''
     cms = ''
 
-    def __init__(self, url):
-        self.url = url
+    def __init__(self, requests, response):
+        self.requests = requests
+        self.response = response
 
     def run(self):
         try:
             self.get_resp_content()
+            self.cms_parser()
             self.form_parser()
             self.check_login_page()
             self.captcha_parser()
             self.post_path_parser()
             self.param_parser()
         except Exception as e:
-            logger.error(f"[-] {self.url} Parse Error: " + str(e))
+            logger.debug(f"{self.requests.url} : " + str(e))
             return False
         return True
 
+    def cms_parser(self):
+        for cms in cmsLogin.values():
+            keyword = cms["keywords"]
+            if keyword and (keyword in self.resp_content):
+                logger.info(f"{self.requests.url} {cms['name']}-LoginPage")
+                self.cms = cms
+
     def get_resp_content(self):
-        res = requests.get(self.url, verify=False)
-        res.encoding = res.apparent_encoding
-        self.resp_content = res.text
+        self.resp_content = self.response.text
 
     def form_parser(self):
         html = self.resp_content
@@ -59,10 +68,11 @@ class Parser:
         captcha_keyword_list = conf.captcha_keywords
         for captcha in captcha_keyword_list:
             if captcha in self.resp_content.lower():
+                logger.warning(f"{captcha} in login page. Skip brute.")
                 raise Exception(f"{captcha} in login page")
 
     def post_path_parser(self):
-        url = self.url
+        url = self.requests.url
         content = self.form_content
         form_action = str(content).split('\n')[0]
         soup = BS(form_action, "lxml")
@@ -86,8 +96,6 @@ class Parser:
         data = {}
         username_keyword = ''
         password_keyword = ''
-        username_keyword_list = conf.username_keywords
-        password_keyword_list = conf.password_keywords
         for input_element in content.find_all('input'):
             if input_element.has_attr('name'):
                 parameter = input_element['name']
@@ -96,32 +104,30 @@ class Parser:
             if input_element.has_attr('value'):
                 value = input_element['value']
             else:
-                value = "0000" # 当参数没有value时的填充值
+                value = "5920"
             if parameter:
                 data[parameter] = value
-
         # 提取username_keyword,password_keyword
         for parameter in data:
             if not username_keyword and parameter != password_keyword:
-                for keyword in username_keyword_list:
+                for keyword in conf.username_keywords:
                     if keyword in parameter.lower():
                         username_keyword = parameter
                         break
             if not password_keyword and parameter != username_keyword:
-                for keyword in password_keyword_list:
+                for keyword in conf.password_keywords:
                     if keyword in parameter.lower():
                         password_keyword = parameter
                         break
-
         # 弹出reset
         for i in ['reset']:
             for r in list(data.keys()):
                 if i in r.lower():
                     data.pop(r)
-
         if username_keyword and password_keyword:
             self.username_keyword = username_keyword
             self.password_keyword = password_keyword
             self.data = data
         else:
-            raise Exception("Can not get login parameter")
+            return False
+        return True

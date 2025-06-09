@@ -42,8 +42,8 @@ def cmd_line_parser(argv=None):
     
     subparsers = parser.add_subparsers(
         dest='command',
-        title='Commands',  # 可选：添加标题
-        metavar='',        # 隐藏 {scan}
+        title='Commands', 
+        metavar='', 
         help=''
         )
     version_parser = subparsers.add_parser('version', help='Show program\'s version number and exit')

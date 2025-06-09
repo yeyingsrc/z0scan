@@ -18,6 +18,7 @@ class Z0SCAN(PluginBase):
     def audit(self):
         if not self.fingerprints.waf and 2 in conf.risk and conf.level != 0:
             _payloads = [
+                r"'\")",
                 ## 宽字节
                 r'鎈\'"\(',
                 ## 通用报错
@@ -78,6 +79,7 @@ class Z0SCAN(PluginBase):
                 "position": position, 
                 "payload": _payload
                 })
+            print(payload)
             r = self.req(position, payload)
             if not r:
                 continue
@@ -93,13 +95,13 @@ class Z0SCAN(PluginBase):
                         "show": {
                             "Position": f"{position} > {k}",
                             "Payload": payload, 
-                            "Msg": "DBMS_TYPE Maybe {}; Match {}".format(dbms_type, match.group())
+                            "Msg": "DBMS_TYPE Maybe {}; {}".format(dbms_type, match.group())
                             }
                         })
                     result.step("Request1", {
                         "request": r.reqinfo, 
                         "response": generateResponse(r), 
-                        "desc": "Dbms Maybe {}; Match {}".format(dbms_type, match.group())
+                        "desc": "Dbms Maybe {}; {}".format(dbms_type, match.group())
                         })
                     self.success(result)
                     return True

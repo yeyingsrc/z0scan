@@ -5,7 +5,7 @@
 
 import re
 
-from data.rule.sensi_js import rules
+from data.rule.js_sensi import rules
 from api import VulType, PLACE, Type, PluginBase, conf
 
 

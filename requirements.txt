@@ -21,3 +21,4 @@ bs4
 dnspython
 fake_useragent>=2.2.0
 tldextract
+viewstate

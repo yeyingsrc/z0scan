@@ -13,7 +13,7 @@ class FakeResp(object):
         self._decoding = chardet.detect(self._body)['encoding']  # 探测当前的编码
 
     @property
-    def status(self):
+    def status_code(self):
         return self._status_code
 
     @property

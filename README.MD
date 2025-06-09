@@ -1,7 +1,7 @@
 ![z0scan](https://socialify.git.ci/JiuZero/z0scan/image?description=1&font=Source+Code+Pro&name=1&owner=1&pattern=Solid&theme=Auto)
 
 <h4 align="center" dir="auto">
-  中文 | <a href="https://github.com/JiuZero/z0scan/blob/master/README.MD">English</a>
+  English | <a href="https://github.com/JiuZero/z0scan/blob/master/README.zh-CN.MD">中文</a> | <a href="https://github.com/JiuZero/z0scan/blob/master/doc/DEV.MD">Document</a>
 </p>
 
 <p align="center">
@@ -17,27 +17,27 @@
 
 ## ⚠️ Disclaimer
 
-> If you engage in any illegal activities while using this project or its included tools, you shall bear the corresponding consequences. We assume no legal or joint liability.
+> If you engage in any illegal activities while using this project and its included tools, you shall bear the corresponding consequences. We assume no legal or joint liability.
 
-> By using this project or implicitly/explicitly accepting this agreement, you are deemed to have read and agreed to the terms of this agreement.
+> By using this project or by any other express or implied acceptance of this agreement, you are deemed to have read and agreed to be bound by the terms herein.
 
 ## 🌟 Advantages
 
-1. Integration of WAF detection, fingerprinting, and plugin scanning  
-2. Capable of parsing potential parameters in pseudo-static, XML, and other complex formats (Beta)
-3. Provides SQLite3 support for storing scan records and other data  
-4. Open-source based on Python3 with cross-platform support  
+1. Integration of WAF detection, fingerprint information, and plugin scanning
+2. Capable of parsing potential parameters in pseudo-static pages, XML, and other complex formats (Beta)
+3. SQLite3 support for storing scan records and other data
+4. Open-source Python3 project with cross-platform support
 5. Supports IPv6 domain resolution (Beta)
 
 ## 🔧 Installation
 
-Install via **Pypi**  
+Install via **Pypi**
 ```bash
 pip install z0scan
 z0
 ```
 
-Install via **GitHub**  
+Install via **GitHub** clone
 ```bash
 git clone https://github.com/JiuZero/z0scan
 cd z0scan
@@ -104,7 +104,7 @@ Optimization:
                         Different level use different payloads: 0-3 (Default
                         2)
   -r RISK, --risk RISK  Different risk use different kind of scanners: [0, 1,
-                        2, 3] (Default [0, 1, 2, 3])
+                        2, 3] (Default [0, 1, 2])
   -c, --concise         Concise output like w13scan
   -iw, --ignore-waf     Ignore the WAF during detection
   -sf, --skip-fingerprint
@@ -119,68 +119,73 @@ Optimization:
 
 - PerFile
 
-| Plugin Name | Description | Risk |
+|Plugin Name|Description|Risk|
 |:---:|:----:|:----:|
-| sqli-bool | SQL Boolean-based Blind Injection | 2 |
-| sqli-time | SQL Time-based Blind Injection | 2 |
-| sqli-error | SQL Error-based Injection | 2 |
-| codei-asp | ASP Code Execution | 3 |
-| codei-php | PHP Code Execution | 3 |
-| cmdi | Command Execution | 3 |
-| other-objectdese | Deserialization Parameter Analysis | 3 |
-| sensi-js | JS Sensitive Information Leak | 1 |
-| sensi-jsonp | JSONP Sensitive Information Leak | 1 |
-| sensi-php-realpath | PHP Real Path Discovery | 0 |
-| redirect | Redirect | 1 |
-| sensi-webpack | Webpack Source Code Leak | 1 |
-| other-webdav-passive | WebDAV Passive Discovery | 1 |
-| xpathi-error | Error-based XPATH Injection | 2 |
-| trave-path | Path Traversal | 2 |
-| sensi-backup | Backup File Detection | 1 |
-| sensi-viewstate | Unencrypted VIEWSTATE Discovery | 0 |
-| xss | JS Semantic-based XSS Scanning | 1 |
-| crlf | CRLF Injection | 2 |
-| cors-passive | CORS Vulnerability Detection (Passive) | 2 |
-| unauth | Unauthorized Access | 2 |
+|sqli-bool|SQL Boolean-based Blind Injection|2|
+|sqli-time|SQL Time-based Blind Injection|2|
+|sqli-error|SQL Error-based Injection|2|
+|codei-asp|ASP Code Execution|3|
+|codei-php|PHP Code Execution|3|
+|cmdi|Command Execution|3|
+|other-objectdese|Deserialization Parameter Analysis|3|
+|sensi-js|JS Sensitive Information Leak|1|
+|sensi-jsonp|JSONP Sensitive Information Leak|1|
+|sensi-php-realpath|PHP Real Path Discovery|0|
+|redirect|Redirect|1|
+|sensi-webpack|Webpack Source Code Leak|1|
+|other-webdav-passive|WebDAV Service Passive Discovery|1|
+|xpathi-error|Error-based XPATH Injection|2|
+|trave-path|Path Traversal|2|
+|sensi-backup|Backup File Detection (File-based)|1|
+|sensi-viewstate|Unencrypted VIEWSTATE Discovery|0|
+|xss|XSS Scanning Based on JS Semantics|1|
+|crlf|CRLF Vulnerability Detection|2|
+|cors-passive|CORS Vulnerability Detection (Passive Analysis)|2|
+|unauth|Unauthorized Access|2|
+|leakpwd-page-passive|Weak Password on Admin Login Page|2|
+|sensi-editfile|Editor Backup File Leak|1|
+|sensi-sourcecode|Source Code Leak|1|
 
 - PerFolder
 
-| Plugin Name | Description | Risk |
+|Plugin Name|Description|Risk|
 |:---:|:----:|:----:|
-| sensi-backup | Backup File Scanning in Directories | 1 |
-| trave-list | Directory Listing | 2 |
-| sensi-repository | Repository Source Code Leak | 1 |
-| sensi-php-phpinfo | PHPInfo File Discovery | 0 |
+|sensi-backup|Backup File Scanning (Directory-based)|1|
+|trave-list|Directory Listing|2|
+|sensi-repository|Repository Source Code Leak|1|
+|sensi-php-phpinfo|Phpinfo File Discovery|0|
+|upload-oss|OSS Bucket Arbitrary File Upload|2|
 
 - PerServer
 
-| Plugin Name | Description | Risk |
+|Plugin Name|Description|Risk|
 |:---:|:----:|:----:|
-| sensi-errorpage | Error Page Sensitive Information Leak | 0 |
-| xss-net | .NET Universal XSS | 1 |
-| other-dns-zonetransfer | DNS Zone Transfer Vulnerability | 1 |
-| xss-flash | Flash Universal XSS | 1 |
-| other-idea-parse | Idea Directory Parsing | 1 |
-| other-xst | XST Vulnerability Detection | -1 |
-| other-webdav-active | WebDAV Active Discovery | 1 |
-| upload-put | PUT-based Arbitrary File Upload | 3 |
-| sensi-backup | Domain-based Backup File Detection | 1 |
-| cors-active | CORS Vulnerability Detection (Active) | 2 |
-| crlf | CRLF Line Injection | 2 |
+|sensi-errorpage|Error Page Sensitive Information Leak|0|
+|xss-net|.NET Universal XSS|1|
+|other-dns-zonetransfer|DNS Zone Transfer Vulnerability|1|
+|xss-flash|Flash Universal XSS|1|
+|other-idea-parse|Idea Directory Parsing|1|
+|other-xst|XST Vulnerability Detection|-1|
+|other-webdav-active|WebDAV Service Discovery|1|
+|upload-put|PUT-based Arbitrary File Upload|3|
+|sensi-backup|Backup File Detection (Domain-based)|1|
+|cors-active|CORS Vulnerability Detection (Active Discovery)|2|
+|crlf|CRLF Line Injection Vulnerability|2|
+|other-hosti|Host Header Injection Attack Detection|1|
+|other-oss-takeover|OSS Bucket Takeover Vulnerability|3|
+|sensi-iis-shortname|IIS Short File Name Vulnerability|0|
 
-- Plugin Development Guide:  
-[DEV.MD](https://github.com/JiuZero/z0scan/blob/master/doc/DEV.MD)
 
 ## 🔆 Changelog & License
 
-- Changelog: [CHANGELOG](https://github.com/JiuZero/z0scan/blob/master/doc/CHANGELOG.MD)  
+- Changelog: [CHANGELOG](https://github.com/JiuZero/z0scan/blob/master/doc/CHANGELOG.MD)
 
-- GPL-2.0 License: [LICENSE](https://github.com/JiuZero/z0scan/blob/master/LICENSE)  
+- GPL-2.0 License: [LICENSE](https://github.com/JiuZero/z0scan/blob/master/LICENSE)
 
 ## ❤️ Contact
 
-| Platform | Contact |
+|Platform|Contact|
 |:---:|:----:|
-| WeiXin | JiuZer1 |
-| QQ | 1703417187 |
-| Email | jiuzer0@qq.com |
+|WeiXin|JiuZer1|
+|QQ|1703417187|
+|Email|jiuzer0@qq.com|

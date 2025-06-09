@@ -3,8 +3,9 @@
 # JiuZero 2025/5/22
  
 from colorama import Fore, Style
-import time, os, sys
+import time, os, sys, threading
 from lib.core.data import conf
+
 
 def dataToStdout(data, enter=True):
     os.write(sys.stdout.fileno(), b'\r')

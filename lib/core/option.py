@@ -3,7 +3,7 @@
 # w8ay 2019/6/29
 # JiuZero 2025/5/15
 
-import os
+import os, sys
 import threading
 import time
 from queue import Queue
