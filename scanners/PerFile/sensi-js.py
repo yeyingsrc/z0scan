@@ -13,10 +13,10 @@ class Z0SCAN(PluginBase):
     name = "sensi-js"
     desc = 'Js Sensitive Finder'
     version = "2025.3.4"
-    risk = 1
+    risk = 0
         
     def audit(self):
-        if not (self.requests.suffix == ".js" or 1 in conf.risk):
+        if not (self.requests.suffix == ".js" or 0 in conf.risk):
             return
         for name, _ in rules.items():
             texts = re.findall(_, self.response.text, re.M | re.I)

@@ -79,7 +79,6 @@ class Z0SCAN(PluginBase):
                 "position": position, 
                 "payload": _payload
                 })
-            print(payload)
             r = self.req(position, payload)
             if not r:
                 continue

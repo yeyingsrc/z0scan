@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# JiuZero 2025/6/11
+
 import inspect
 import os
 import sys
 import threading
-
 import requests
 from colorama import deinit
 
