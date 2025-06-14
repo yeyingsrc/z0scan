@@ -1,4 +1,4 @@
-from myscan.lib.scriptlib.ssti.languages import ruby
+from lib.helper.ssti.languages import ruby
 
 
 class Erb(ruby.Ruby):

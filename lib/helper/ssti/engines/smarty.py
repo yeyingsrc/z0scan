@@ -1,7 +1,7 @@
-from myscan.lib.scriptlib.ssti.languages import php
+from lib.helper.ssti.languages import php
 
 
-from myscan.lib.scriptlib.ssti import rand
+from lib.helper.ssti import rand
 
 class Smarty(php.Php):
     

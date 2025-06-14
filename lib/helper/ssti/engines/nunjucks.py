@@ -1,7 +1,7 @@
-from myscan.lib.scriptlib.ssti.languages import javascript
+from lib.helper.ssti.languages import javascript
 
 
-from myscan.lib.scriptlib.ssti import rand
+from lib.helper.ssti import rand
 
 class Nunjucks(javascript.Javascript):
     

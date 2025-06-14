@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # w8ay 2019/7/4
-# JiuZero 2025/5/15
+# JiuZero 2025/6/14
 
 import copy
 import random
 import re
 from urllib.parse import quote
 from lib.core.settings import acceptedExt
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from lib.core.log import logger
 from lib.api.dnslog import DnsLogApi
 from lib.api.reverse_api import reverseApi
-from api import generateResponse, random_str, updateJsonObjectFromStr, splitUrlPath, conf, PLACE, VulType, POST_HINT, Type, PluginBase
+from api import generateResponse, random_str, conf, PLACE, VulType, POST_HINT, Type, PluginBase, Threads
 
 class Z0SCAN(PluginBase):
     name = "cmdi"
     desc = 'Cmd Injection'
-    version = "2025.5.15"
+    version = "2025.6.14"
     risk = 3
         
     def audit(self):
@@ -43,29 +42,15 @@ class Z0SCAN(PluginBase):
                     "NjE2Mjk4Mwo=6162983"
                 ]
             }
-            for k, v in self.fingerprints.os.items():
-                if k == "WINDOWS":
-                    del payloads["echo `echo {}|base64`{}".format(randint, randint)]
+            if not self.fingerprints.os.get("WINDOWS", "False") is False:
+                del payloads["echo `echo {}|base64`{}".format(randint, randint)]
 
             # Dnslog
             dns = reverseApi()
 
             iterdatas = self.generateItemdatas()
-            with ThreadPoolExecutor(max_workers=None) as executor:
-                futures = [
-                    executor.submit(self.process, _, payloads, dns) for _ in iterdatas
-                ]
-                try:
-                    for future in as_completed(futures):
-                        try:
-                            future.result()
-                        except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin=self.name)
-                except KeyboardInterrupt:
-                    executor.shutdown(wait=False)
-                except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin=self.name)
-                    executor.shutdown(wait=False)
+            z0thread = Threads(name="cmdi")
+            z0thread.submit(self.process, iterdatas, payloads, dns)
                 
     def process(self, _, payloads, dns):
         if dns.isUseReverse():

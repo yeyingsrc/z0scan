@@ -81,7 +81,6 @@ def reduce_urls(ori_urls):
     result_urls = []
     for ori_url in ori_urls:
         etl = url_etl(ori_url)
-        print(etl)
         score = 0
         if etl_urls:
             for etl_url in etl_urls:

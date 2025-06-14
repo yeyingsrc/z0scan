@@ -4,9 +4,8 @@
 # JiuZero 2025/3/13
 
 from data.rule.sqli_error import rules
-from api import generateResponse, random_num, random_str, VulType, Type, PluginBase, conf, logger
+from api import generateResponse, random_num, random_str, VulType, Type, PluginBase, conf, logger, Threads
 from lib.helper.helper_sensitive import sensitive_page_error_message_check
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
 
 class Z0SCAN(PluginBase):
@@ -47,21 +46,8 @@ class Z0SCAN(PluginBase):
                 ]
     
             iterdatas = self.generateItemdatas()
-            with ThreadPoolExecutor(max_workers=None) as executor:
-                futures = [
-                    executor.submit(self.process, _, _payloads) for _ in iterdatas
-                ]
-                try:
-                    for future in as_completed(futures):
-                        try:
-                            future.result()
-                        except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin=self.name)
-                except KeyboardInterrupt:
-                    executor.shutdown(wait=False)
-                except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin=self.name)
-                    executor.shutdown(wait=False)
+            z0thread = Threads(name="sqli-error")
+            z0thread.submit(self.process, iterdatas, _payloads)
     
     def Get_sql_errors(self):
         sql_errors = []

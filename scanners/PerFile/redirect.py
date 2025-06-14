@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# JiuZero 2025/3/18
+# JiuZero 2025/6/14
 
 import re
 import random
-import string
 from urllib.parse import urlparse, unquote
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from api import generateResponse, VulType, PLACE, Type, PluginBase, conf, logger
+from api import generateResponse, VulType, PLACE, Type, PluginBase, conf, logger, Threads
 
 class Z0SCAN(PluginBase):
     name = "redirect"
     desc = 'Open Redirect'
-    version = "2025.3.18"
+    version = "2025.6.14"
     risk = 1
     
     def __init__(self):
@@ -30,14 +28,14 @@ class Z0SCAN(PluginBase):
             if 'location' in response.headers:
                 location = unquote(response.headers['location'])
                 if urlparse(location).netloc.endswith(urlparse(self.test_domain).netloc):
-                    return "HTTP头跳转", location
+                    return "HTTP Head", location
         # Meta Refresh检测
         if re.search(redirect_patterns['meta'], response.text, re.I|re.S):
-            return "HTML Meta跳转", None
+            return "HTML Meta", None
         # JavaScript跳转检测
         for script in self._extract_scripts(response.text):
             if re.search(redirect_patterns['javascript'], script, re.I):
-                return "JavaScript跳转", script
+                return "JavaScript", script
         return None, None
 
     def _extract_scripts(self, html):
@@ -63,66 +61,41 @@ class Z0SCAN(PluginBase):
         return any(re.search(p, value, re.I) for p in patterns)
 
     def audit(self):
-        if conf.level != 0 and 1 in conf.risk:
+        if conf.level != 0 and 1 in conf.risk and self.response.status_code == 302:
             iterdatas = self.generateItemdatas()
-            with ThreadPoolExecutor(max_workers=None) as executor:
-                futures = [
-                    executor.submit(self.process, _) for _ in iterdatas
-                ]
-                try:
-                    for future in as_completed(futures):
-                        try:
-                            future.result()
-                        except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin=self.name)
-                except KeyboardInterrupt:
-                    executor.shutdown(wait=False)
-                except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin=self.name)
-                    executor.shutdown(wait=False)
+            z0thread = Threads(name="redirect")
+            z0thread.submit(self.process, iterdatas)
     
     def process(self, _):
         k, v, position = _
-        if not self._is_redirect_param(v):
-            return
-        payload = self.insertPayload({
-            "key": k, 
-            "value": v, 
-            "position": position, 
-            "payload": self.test_domain
-            })
-        r = self.req(position, payload, allow_redirects=False)
-        if not r:
-            return
-        vuln_type, evidence = self._detect_redirect_type(r)
-        if not vuln_type:
-            return
-        result = self.generate_result()
-        result.main({
-            "type": Type.REQUEST, 
-            "url": self.requests.url, 
-            "vultype": VulType.REDIRECT, 
-            "show": {
-                "Position": position, 
-                "Msg": f"{vuln_type}", 
-                "Param": k, 
-                "Payload": payload
-                }
-            })
-        result.step("Request1", {
-            "request": self._build_request_info(k, payload), 
-            "response": generateResponse(r), 
-            "desc": f"Match Keywords {evidence[:100] if evidence else ''}"
-            })
-        self.success(result)
-        return True
-
-    def _build_request_info(self, param, payload):
-        return {
-            'method': self.requests.method,
-            'url': self.requests.url,
-            'params' if self.requests.method == "GET" else 'data': {
-                **self.requests.params,
-                param: payload
-            }
-        }
+        if self._is_redirect_param(v) or conf.level == 3: # level==3 时全检测
+            payload = self.insertPayload({
+                "key": k, 
+                "position": position, 
+                "payload": self.test_domain
+                })
+            r = self.req(position, payload, allow_redirects=False)
+            if not r:
+                return
+            vuln_type, evidence = self._detect_redirect_type(r)
+            if not vuln_type:
+                return
+            result = self.generate_result()
+            result.main({
+                "type": Type.REQUEST, 
+                "url": self.requests.url, 
+                "vultype": VulType.REDIRECT, 
+                "show": {
+                    "Position": position, 
+                    "Msg": f"{vuln_type}", 
+                    "Param": k, 
+                    "Payload": payload
+                    }
+                })
+            result.step("Request1", {
+                "request": r.reqinfo, 
+                "response": generateResponse(r), 
+                "desc": f"Match Keywords {evidence[:100] if evidence else ''}"
+                })
+            self.success(result)
+            return True

@@ -1,6 +1,6 @@
-from myscan.lib.scriptlib.ssti.languages import php
-from myscan.lib.scriptlib.ssti.languages import bash
-from myscan.lib.scriptlib.ssti import rand
+from lib.helper.ssti.languages import php
+from lib.helper.ssti.languages import bash
+from lib.helper.ssti import rand
 
 class Twig(php.Php):
     

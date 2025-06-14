@@ -11,7 +11,7 @@ from api import conf, generateResponse, VulType, PLACE, PluginBase, Type
 
 
 class Z0SCAN(PluginBase):
-    name = "sensi-backupPS"
+    name = "sensi-backup_3"
     desc = "Backup Files Of Each Domain"
     version = "2025.3.1"
     risk = 1

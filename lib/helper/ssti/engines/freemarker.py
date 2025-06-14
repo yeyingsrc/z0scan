@@ -1,7 +1,7 @@
-from myscan.lib.scriptlib.ssti.languages import java
+from lib.helper.ssti.languages import java
 
 
-from myscan.lib.scriptlib.ssti import rand
+from lib.helper.ssti import rand
 import re
 
 class Freemarker(java.Java):

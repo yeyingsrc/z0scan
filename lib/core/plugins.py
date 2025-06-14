@@ -28,9 +28,7 @@ from lib.core.exection import PluginCheckError
 from lib.core.output import ResultObject
 from lib.parse.parse_request import FakeReq
 from lib.parse.parse_response import FakeResp
-from lib.core.common import splitUrlPath, updateJsonObjectFromStr
 from lib.core.enums import POST_HINT, PLACE, HTTPMETHOD
-from requests.adapters import HTTPAdapter
 
 def _flatten_json_items(data, prefix=''):
     """生成可迭代的(key_path, value)对"""
@@ -326,7 +324,7 @@ class PluginBase(object):
             url = re.sub(r'/{}[-_/]([^-_/?#&=]+)'.format(re.escape(key), re.escape(value)),r'/{}[-_/]([^-_/?#&=]+)'.format(key, parse.quote(value + payload)), self.requests.url)
             return url
 
-    def req(self, position, payload):
+    def req(self, position, payload, allow_redirects=True):
         '''
         sess = requests.Session()
         sess.mount('http://', HTTPAdapter(max_retries=conf.retry)) 
@@ -335,47 +333,27 @@ class PluginBase(object):
         '''
         r = False
         if position == PLACE.PARAM:
-            url, payload = self.merged_params_requests(self.requests.url, payload)
-            r = requests.get(url, params=payload, data=self.requests.post_data, headers=self.requests.headers)
+            r = requests.get(self.requests.url, params=payload, data=self.requests.post_data, headers=self.requests.headers, allow_redirects=allow_redirects)
         elif position == PLACE.NORMAL_DATA:
-            url, params = self.merged_params_requests(self.requests.url, self.requests.params)
-            r = requests.post(url, params=self.requests.params, data=payload, headers=self.requests.headers)
+            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers, allow_redirects=allow_redirects)
         elif position == PLACE.JSON_DATA:
-            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers)
+            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers, allow_redirects=allow_redirects)
         elif position == PLACE.XML_DATA:
-            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers)
+            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers, allow_redirects=allow_redirects)
         elif position == PLACE.MULTIPART_DATA:
-            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers)
+            r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers, allow_redirects=allow_redirects)
         elif position == PLACE.COOKIE:
             if self.requests.method == HTTPMETHOD.GET:
-                r = requests.get(self.requests.url, params=self.requests.params, data=self.requests.post_data, headers=payload)
+                r = requests.get(self.requests.url, params=self.requests.params, data=self.requests.post_data, headers=payload, allow_redirects=allow_redirects)
             elif self.requests.method == HTTPMETHOD.POST:
-                r = requests.post(self.requests.url, params=self.requests.params, data=self.requests.post_data, headers=payload)
+                r = requests.post(self.requests.url, params=self.requests.params, data=self.requests.post_data, headers=payload, allow_redirects=allow_redirects)
         elif position == PLACE.URL:
-            payload, params = self.merged_params_requests(payload, self.requests.params, data=self.requests.post_data, headers=self.requests.headers)
             if self.requests.method == HTTPMETHOD.GET:
-                r = requests.get(payload, params=params, data=self.requests.post_data, headers=self.requests.headers)
+                r = requests.get(payload, params=self.requests.params, data=self.requests.post_data, headers=self.requests.headers, allow_redirects=allow_redirects)
             elif self.requests.method == HTTPMETHOD.POST:
-                r = requests.post(payload, params=params, data=self.requests.post_data, headers=self.requests.headers)
+                r = requests.post(payload, params=self.requests.params, data=self.requests.post_data, headers=self.requests.headers, allow_redirects=allow_redirects)
         # sess.close()
         return r
-    
-    def merged_params_requests(self, url, payload):
-        # 合并URL中的查询参数与payload参数，避免重复
-        # (原因是实战过程中发现部分站点在遇到参数重复时会非正常响应)
-        url_parts = urlsplit(url)
-        original_query = parse_qs(url_parts.query)
-        payload_query = {}
-        for key, value in payload.items():
-            if isinstance(value, list):
-                payload_query[key] = value
-            else:
-                payload_query[key] = [value]
-        merged_query = original_query.copy()
-        merged_query.update(payload_query)
-        new_url_parts = url_parts._replace(query=None)
-        new_url = urlunsplit(new_url_parts)
-        return new_url, merged_query
     
     def execute(self, request: FakeReq, response: FakeResp):
         self.requests = request
@@ -402,20 +380,16 @@ class PluginBase(object):
                 except Exception:
                     return
             else:
-                msg = "connect target '{0}' failed!".format(self.requests.hostname)
+                # msg = "connect target '{0}' failed!".format(self.requests.hostname)
                 return
                 # Share.dataToStdout('\r' + msg + '\n\r')
 
         except HTTPError as e:
             msg = 'Plugin: {0} HTTPError occurs, start it over.'.format(self.requests.hostname)
-            KB.lock.acquire()
             logger.warning(msg)
-            KB.lock.release()
         except ConnectionError as e:
-            KB.lock.acquire()
             msg = "connect target '{}' failed!".format(self.requests.hostname)
             logger.warning(msg)
-            KB.lock.release()
             return
         except requests.exceptions.ChunkedEncodingError:
             pass

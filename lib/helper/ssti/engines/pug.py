@@ -1,4 +1,4 @@
-from myscan.lib.scriptlib.ssti.languages import javascript
+from lib.helper.ssti.languages import javascript
 
 
 class Pug(javascript.Javascript):

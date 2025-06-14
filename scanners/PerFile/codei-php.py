@@ -5,8 +5,7 @@
 
 import random
 import re
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from api import VulType, md5, generateResponse, conf, PluginBase, Type, logger
+from api import VulType, md5, generateResponse, conf, PluginBase, Type, logger, Threads
 from lib.helper.helper_sensitive import sensitive_page_error_message_check
 
 
@@ -17,11 +16,10 @@ class Z0SCAN(PluginBase):
     risk = 3
             
     def audit(self):
-        if conf.level == 0 or not 3 in conf.risk:
+        if conf.level == 0 or not 3 in conf.risk or self.fingerprints.waf:
             return
-        if self.fingerprints.programing.get("PHP", False) and not self.fingerprints.waf:
-            regx = r'Parse error: syntax error,.*?\sin\s'
-            randint = random.randint(5120, 10240)
+        if not self.fingerprints.programing.get("PHP", False) is False:
+            randint = random.randint(10120, 10240)
             verify_result = md5(str(randint).encode())
             _payloads = [
                 r"print(md5({}));".format(randint),
@@ -34,24 +32,12 @@ class Z0SCAN(PluginBase):
             ]
 
             iterdatas = self.generateItemdatas()
-            with ThreadPoolExecutor(max_workers=None) as executor:
-                futures = [
-                    executor.submit(self.process, _, _payloads, verify_result, regx) for _ in iterdatas
-                ]
-                try:
-                    for future in as_completed(futures):
-                        try:
-                            future.result()
-                        except Exception as task_e:
-                            logger.error(f"Task failed: {task_e}", origin=self.name)
-                except KeyboardInterrupt:
-                    executor.shutdown(wait=False)
-                except Exception as e:
-                    logger.error(f"Unexpected error: {e}", origin=self.name)
-                    executor.shutdown(wait=False)
+            z0thread = Threads(name="codei-php")
+            z0thread.submit(self.process, iterdatas, _payloads, verify_result)
 
-    def process(self, _, position, _payloads, verify_result, regx):
+    def process(self, _, _payloads, verify_result):
         k, v, position = _
+        regx = r'Parse error: syntax error,.*?\sin\s'
         errors = None
         errors_raw = ()
         for _payload in _payloads:
@@ -60,7 +46,7 @@ class Z0SCAN(PluginBase):
                 "position": position, 
                 "payload": _payload
                 })
-            r = self.req(k, v, position, payload)
+            r = self.req(position, payload)
             if not r:
                 continue
             html1 = r.text
@@ -72,8 +58,8 @@ class Z0SCAN(PluginBase):
                     "vultype": VulType.SENSITIVE, 
                     "show": {
                         "Position": position, 
-                        "Param": key, 
-                        "Payload": value
+                        "Param": k, 
+                        "Payload": _payload
                         }
                     })
                 result.step("Request1", {
@@ -91,8 +77,8 @@ class Z0SCAN(PluginBase):
                     "vultype": VulType.SENSITIVE, 
                     "show": {
                         "Position": position, 
-                        "Param": key, 
-                        "Payload": value
+                        "Param": k, 
+                        "Payload": _payload
                         }
                     })
                 result.step("Request1", {

@@ -6,7 +6,6 @@
 from copy import deepcopy
 import difflib
 from api import generateResponse, VulType, PLACE, PluginBase, Type, conf
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Z0SCAN(PluginBase):
     name = "unauth"

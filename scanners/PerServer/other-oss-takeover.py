@@ -15,7 +15,7 @@ class Z0SCAN(PluginBase):
     risk = 3
 
     def audit(self):
-        if self.fingerprints.webserver.get("OSS") and 3 in conf.risk:
+        if not self.fingerprints.webserver.get("OSS", False) is False and 3 in conf.risk:
             r = requests.get(self.requests.netloc + self.variable_leakage, verify=False)
             response_text = r.text.lower()
             for keyword in [

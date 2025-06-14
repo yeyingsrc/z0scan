@@ -4,7 +4,6 @@
 # JiuZero  2025/5/23
 
 import requests, tldextract
-from future.utils import iteritems
 try:
     from urllib.parse import urlparse
 except Exception as e:
@@ -66,5 +65,5 @@ def send_req(self, url, origin):
 def get_resp_headers(self, resp):
     if resp == None:
         return None
-    resp_headers = dict((k.lower(), v) for k, v in iteritems(resp.headers))
+    resp_headers = {k.lower(): v for k, v in resp.headers.items()}
     return resp_headers

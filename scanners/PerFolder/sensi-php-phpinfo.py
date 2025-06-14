@@ -16,7 +16,7 @@ class Z0SCAN(PluginBase):
     risk = 0
     
     def audit(self):
-        if self.fingerprints.programing.get("PHP", False) and 0 in conf.risk and conf.level != 0:
+        if not self.fingerprints.programing.get("PHP", False) is False and 0 in conf.risk and conf.level != 0:
             headers = self.requests.headers.copy()
             for phpinfo in KB.dicts["phpinfo"]:
                 testURL = self.requests.netloc.rstrip("/") + "/" + phpinfo

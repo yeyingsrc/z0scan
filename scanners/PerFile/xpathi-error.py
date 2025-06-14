@@ -4,9 +4,7 @@
 
 import re
 import random
-import string
-from api import generateResponse, VulType, PLACE, Type, PluginBase, KB, conf, logger
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from api import generateResponse, VulType, Type, PluginBase, KB, conf, Threads
 
 class Z0SCAN(PluginBase):
     name = "xpathi-error"
@@ -54,21 +52,8 @@ class Z0SCAN(PluginBase):
         if not self.condition():
             return
         iterdatas = self.generateItemdatas()
-        with ThreadPoolExecutor(max_workers=None) as executor:
-            futures = [
-                executor.submit(self.process, _) for _ in iterdatas
-            ]
-            try:
-                for future in as_completed(futures):
-                    try:
-                        future.result()
-                    except Exception as task_e:
-                        logger.error(f"Task failed: {task_e}", origin=self.name)
-            except KeyboardInterrupt:
-                executor.shutdown(wait=False)
-            except Exception as e:
-                logger.error(f"Unexpected error: {e}", origin=self.name)
-                executor.shutdown(wait=False)
+        z0thread = Threads(name="xpathi-error")
+        z0thread.submit(self.process, iterdatas)
                 
     def process(self, _):
         k, v, position = _

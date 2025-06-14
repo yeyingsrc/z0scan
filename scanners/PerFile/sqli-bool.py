@@ -5,9 +5,8 @@
 
 import difflib
 import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from api import random_str, generateResponse, url_dict2str, PLACE, VulType, HTTPMETHOD, Type, PluginBase, logger, conf
+from api import generateResponse, VulType, HTTPMETHOD, Type, PluginBase, conf, Threads
 from lib.helper.diifpage import findDynamicContent, getFilteredPageContent, removeDynamicContent
 
 
@@ -134,22 +133,9 @@ class Z0SCAN(PluginBase):
             count += 1
             
         iterdatas = self.generateItemdatas()
-        with ThreadPoolExecutor(max_workers=None) as executor:
-            futures = [
-                executor.submit(self.process, _) for _ in iterdatas
-            ]
-            try:
-                for future in as_completed(futures):
-                    try:
-                        future.result()
-                    except Exception as task_e:
-                        logger.error(f"Task failed: {task_e}", origin=self.name)
-            except KeyboardInterrupt:
-                executor.shutdown(wait=False)
-            except Exception as e:
-                logger.error(f"Unexpected error: {e}", origin=self.name)
-                executor.shutdown(wait=False)
-                    
+        z0thread = Threads(name="sqli-bool")
+        z0thread.submit(self.process, iterdatas)
+    
     def process(self, _):
         k, v, position = _
         # ["true", "false"]

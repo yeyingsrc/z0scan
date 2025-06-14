@@ -4,7 +4,7 @@
 
 from api import generateResponse, VulType, Type, PluginBase, conf, logger
 import os
-import re
+import re, requests
 from urllib import parse
 from urllib.parse import urlparse
 
@@ -54,9 +54,8 @@ class Z0SCAN(PluginBase):
         ]
         for path in test_paths:
             full_path = os.path.join(dirname, path)
-            full_url = f"{self.requests.scheme}://{self.requests.netloc}{full_path}"
-            
-            r = self.req("URL", {"url": full_url})
+            full_url = f"{self.requests.netloc}{full_path}"
+            r = requests.get(full_url, headers=self.requests.headers, allow_redirects=False)
             if not r or r.status_code != 200:
                 continue
             content = r.content[:1000]  # 只检查前1000字节

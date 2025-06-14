@@ -1,4 +1,4 @@
-from myscan.lib.scriptlib.ssti.languages import python
+from lib.helper.ssti.languages import python
 
 
 class Mako(python.Python):

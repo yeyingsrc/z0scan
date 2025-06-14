@@ -12,7 +12,7 @@ from api import conf, generateResponse, VulType, PLACE, Type, PluginBase, KB
 
 
 class Z0SCAN(PluginBase):
-    name = "sensi-backupFolder"
+    name = "sensi-backup_2"
     desc = 'Backup File Of Each Folder'
     version = "2025.3.4"
     risk = 1

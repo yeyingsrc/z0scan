@@ -78,11 +78,11 @@ rules = {
     'slack_token': r"\"api_token\":\"(xox[a-zA-Z]-[a-zA-Z0-9-]+)\"",
     'ssh_privkey': r"([-]+BEGIN [^\s]+ PRIVATE KEY[-]+[\s]*[^-]*[-]+END [^\s]+ PRIVATE KEY[-]+)",
     # 'heroku_api_key': r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
-    'possible_creds': r"(" \
-                    r"password\s*[`=:\"]+\s*[^\s]+|" \
-                    r"password is\s*[`=:\"]*\s*[^\s]+|" \
-                    r"pwd\s*[`=:\"]*\s*[^\s]+|" \
-                    r"passwd\s*[`=:\"]+\s*[^\s]+)",
+    #'possible_creds': r"(" \
+    #                r"password\s*[`=:\"]+\s*[^\s]+|" \
+    #                r"password is\s*[`=:\"]*\s*[^\s]+|" \
+    #                r"pwd\s*[`=:\"]*\s*[^\s]+|" \
+    #                r"passwd\s*[`=:\"]+\s*[^\s]+)",
     'java_deserialization​': r"​(javax​\\​.faces​\\​.ViewState)​", 
     'jdbc-sql': r"jdbc:(mysql|h2|oracle|sqlserver|jtds:sqlserver):|System\.Data\.SqlClient|Data\.PassportContext|mysql\.username|mysql\.password|mysql\.url|jdbc\.username|jdbc\.password|mssql\.jdbc|mssql\.user|com\.microsoft\.sqlserver\.jdbc\.SQLServerDriver",
     'jdbc-connection': r'(jdbc:[a-z:]+://[a-z0-9\.\-_:;=/@?,&]+)',

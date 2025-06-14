@@ -1,7 +1,7 @@
-from myscan.lib.scriptlib.ssti.languages import python
+from lib.helper.ssti.languages import python
 
 
-from myscan.lib.scriptlib.ssti import rand
+from lib.helper.ssti import rand
 
 class Jinja2(python.Python):
     

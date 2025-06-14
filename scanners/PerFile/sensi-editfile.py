@@ -3,7 +3,7 @@
 # JiuZero 2025/6/7
 from api import generateResponse, VulType, Type, PluginBase, conf, logger, random_str
 import os
-import difflib
+import difflib, requests
 from urllib.parse import urlparse
 
 class Z0SCAN(PluginBase):
@@ -28,13 +28,13 @@ class Z0SCAN(PluginBase):
             (f"{dirname}/{basename}~", f"{dirname}/{rand_str}{basename}~")
         ]
         for real_path, fake_path in test_paths:
-            real_url = f"{self.requests.scheme}://{self.requests.netloc}{real_path}"
-            fake_url = f"{self.requests.scheme}://{self.requests.netloc}{fake_path}"
-            r_real = self.req("URL", {"url": real_url})
+            real_url = f"{self.requests.netloc}{real_path}"
+            fake_url = f"{self.requests.netloc}{fake_path}"
+            r_real = requests.get(real_url, headers=self.requests.headers, allow_redirects=False)
             if not (r_real and r_real.status_code == 200 and 
                    "text/html" not in r_real.headers.get("Content-Type", "").lower()):
                 continue
-            r_fake = self.req("URL", {"url": fake_url})
+            r_fake = requests.get(fake_url, headers=self.requests.headers, allow_redirects=False)
             if not r_fake:
                 continue
             try:

@@ -15,7 +15,7 @@ class Z0SCAN(PluginBase):
         if conf.level == 0 or not 1 in conf.risk:
             return
         raw_request = self.requests.raw
-        modified_request = re.sub(b"Host: .*?\r\n", b"Host: z0scan.com\r\n", raw_request, 1)
+        modified_request = re.sub(r"Host: .*?\r\n", "Host: z0scan.com\r\n", raw_request, 1)
         if self.requests.scheme == "https":
             r = self.send_request(modified_request, ssl=True)
         else:
@@ -23,7 +23,7 @@ class Z0SCAN(PluginBase):
         if not r:
             return
         success = False
-        if re.search(b"Location: [^\?]*?z0scan\.com.*?\r\n", r.raw):
+        if "Location" in r.headers and "z0scan.com" in r.headers["Location"]:
             self.report(r, "Redirect in headers")
             success = True
         if not success:
@@ -34,7 +34,8 @@ class Z0SCAN(PluginBase):
                 "window.navigate\(['\"](.*?)['\"]\)"
             ]
             for pattern in patterns:
-                matches = re.findall(pattern, r.text, re.I)
+                response_body = r.read().decode('utf-8', errors='ignore')
+                matches = re.findall(pattern, response_body, re.I)
                 for match in matches:
                     if match.strip() and "z0scan" in match:
                         self.report(r, f"Redirect in body, pattern: {pattern}, match: {match}")
@@ -46,17 +47,22 @@ class Z0SCAN(PluginBase):
             if ssl:
                 import ssl
                 context = ssl.create_default_context()
-                with socket.create_connection((self.requests.host, self.requests.port)) as sock:
-                    with context.wrap_socket(sock, server_hostname=self.requests.host) as ssock:
+                context.check_hostname = False  # 禁用主机名验证
+                context.verify_mode = ssl.CERT_NONE  # 禁用证书验证
+                with socket.create_connection((self.requests.hostname, self.requests.port)) as sock:
+                    with context.wrap_socket(sock, server_hostname=self.requests.hostname) as ssock:
+                        if isinstance(request_data, str):
+                            request_data = request_data.encode('utf-8')  # 转换为 bytes
                         ssock.sendall(request_data)
                         response = ssock.recv(8192)
             else:
-                with socket.create_connection((self.requests.host, self.requests.port)) as sock:
+                with socket.create_connection((self.requests.hostname, self.requests.port)) as sock:
                     sock.sendall(request_data)
                     response = sock.recv(8192)        
             return self.parse_response(response)
         except Exception as e:
             logger.error(f"Request failed: {e}", origin=self.name)
+            raise
             return None
     
     def parse_response(self, raw_response):

@@ -10,7 +10,7 @@ from api import generateResponse, VulType, PLACE, HTTPMETHOD, PluginBase, conf, 
 
 
 class Z0SCAN(PluginBase):
-    name = 'sensi-backupFile'
+    name = 'sensi-backup_1'
     desc = 'Backup File Finder for PerFile'
     version = "2025.5.15"
     risk = 1
@@ -76,6 +76,6 @@ class Z0SCAN(PluginBase):
                     result.step("Request1", {
                         "request": r.reqinfo, 
                         "response": content.decode(errors='ignores'), 
-                        "desc": "备份文件大小:{}M".format(rarsize)
+                        "desc": "Sizes: {}M".format(rarsize)
                         })
                     self.success(result)

@@ -34,7 +34,7 @@ class Z0SCAN(PluginBase):
         return None
     
     def audit(self):
-        if not self.fingerprints.webserver.get("OSS") and 3 in conf.risk and conf.level != 0:
+        if not self.fingerprints.webserver.get("OSS", False) is False and 3 in conf.risk and conf.level != 0:
             test_methods = ["PUT"] if conf.level <= 2 else ["PUT", "POST"]
             for method in test_methods:
                 if r := self._test_upload(method):

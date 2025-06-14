@@ -103,21 +103,22 @@ z0 scan -f urls.txt
 |other-webdav-passive|webdav服务被动发现|1|
 |xpathi-error|基于报错的XPATH注入检测|2|
 |trave-path|路径穿越|2|
-|sensi-backup|基于文件的备份文件检测|1|
+|sensi-backup_1|基于文件的备份文件检测|1|
 |sensi-viewstate|未加密的VIEWSTATE发现|0|
 |xss|基于JS语义的XSS扫描|1|
-|crlf|CRLF漏洞检测|2|
+|crlf_1|CRLF漏洞检测|2|
 |cors-passive|CORS漏洞检测（被动分析）|2|
 |unauth|未授权访问漏洞|2|
 |leakpwd-page-passive|后台登陆页弱口令|2|
 |sensi-editfile|编辑器备份文件泄露|1|
 |sensi-sourcecode|源码泄露|1|
+|captcha-bypass|验证码绕过|0|
 
 - PerFolder
 
 |插件名称|插件简述|Risk|
 |:---:|:----:|:----:|
-|sensi-backup|基于各级目录的备份文件扫描|1|
+|sensi-backup_2|基于各级目录的备份文件扫描|1|
 |trave-list|目录浏览|2|
 |sensi-repository|仓库源码泄漏|1|
 |sensi-php-phpinfo|Phpinfo文件发现|0|
@@ -135,9 +136,9 @@ z0 scan -f urls.txt
 |other-xst|XST漏洞检测|-1|
 |other-webdav-active|webdav服务发现|1|
 |upload-put|基于PUT请求的任意文件上传|3|
-|sensi-backup|基于域名的备份文件检测|1|
+|sensi-backup_3|基于域名的备份文件检测|1|
 |cors-active|CORS漏洞检测（主动发现）|2|
-|crlf|CRLF换行注入漏洞|2|
+|crlf_3|CRLF换行注入漏洞|2|
 |other-hosti|Host头注入攻击检测|1|
 |other-oss-takeover|OSS储存桶接管漏洞|3|
 |sensi-iis-shortname|IIS短文件名漏洞|0|

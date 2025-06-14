@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# JiuZero 2025/5/22
+# JiuZero 2025/6/14
 
 import re
 import copy, random, string
@@ -8,9 +8,9 @@ from urllib.parse import quote
 from api import generateResponse, VulType, PLACE, Type, PluginBase, conf
 
 class Z0SCAN(PluginBase):
-    name = "crlf"
+    name = "crlf_1"
     desc = 'CRLF Injection'
-    version = "2025.5.22"
+    version = "2025.6.14"
     risk = 2
 
     def _check_response(self, resp, test_header):

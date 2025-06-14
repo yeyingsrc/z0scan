@@ -80,10 +80,9 @@ def initPlugins():
             except AttributeError as e:
                 logger.error('Filename: {} not class "{}", Reason: {}'.format(filename, 'Z0SCAN', e))
                 raise
-    logger.info('Load scanner plugins: {}{}{}'.format(colors.y, len(KB["registered"])-1, colors.e))
 
     # 加载指纹识别插件
-    num = 0
+    num1 = 0
     for root, dirs, files in os.walk(path.fingprints):
         files = filter(lambda x: not x.startswith("__") and x.endswith(".py"), files)
         for _ in files:
@@ -98,11 +97,10 @@ def initPlugins():
             if name not in KB["fingerprint"]:
                 KB["fingerprint"][name] = []
             KB["fingerprint"][name].append(mod)
-            num += 1
-    logger.info('Load fingerprint plugins: {}{}{}'.format(colors.y, num, colors.e))
+            num1 += 1
     
     # 加载模糊字典并储存为列表
-    num = 0
+    num2 = 0
     for root, dirs, files in os.walk(path.data_dict):
         files = list(filter(lambda x: x.endswith('.txt'), files))
         for _ in files:
@@ -113,10 +111,11 @@ def initPlugins():
                     content = [line.strip() for line in f.readlines() if line.strip()]
                     # TODO: replace
                     KB.dicts[name] = content
-                    num += 1
+                    num2 += 1
             except Exception as e:
                 logger.warning(f'Error loading dict {file}: {str(e)}')
-    logger.info('Load fuzz dicts: {}{}{}'.format(colors.y, num, colors.e))
+
+    logger.info(f'Scanner{colors.y}[{len(KB["registered"])-1}]{colors.e} Fingerprint{colors.y}[{num1}]{colors.e} Dicts{colors.y}[{num2}]{colors.e}')
 
 
 def _merge_options(cmdline):
@@ -165,8 +164,7 @@ def _set_conf():
 
 
 def _init_stdout():
-    # 指定扫描等级
-    logger.info("Level of contracting: [#{}{}{}]".format(colors.y, conf.level, colors.e))
+    logger.info(f"Level{colors.y}[{conf.level}]{colors.e} Risk{colors.y}{conf.risk}{colors.e}")
     # 不扫描网址
     if len(conf["excludes"]):
         logger.info("No scanning: {}".format(repr(conf["excludes"])))

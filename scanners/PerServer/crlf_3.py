@@ -8,7 +8,7 @@ from urllib.parse import quote
 from api import generateResponse, VulType, PLACE, Type, PluginBase, conf
 
 class Z0SCAN(PluginBase):
-    name = "crlf"
+    name = "crlf_3"
     desc = 'CRLF Injection'
     version = "2025.5.28"
     risk = 2

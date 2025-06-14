@@ -3,12 +3,9 @@
 # w8ay 2019/7/8
 # JiuZero 2025/5/8
 
-import copy
 import re
-from urllib.parse import unquote, quote
-from lib.core.log import logger
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from api import generateResponse, updateJsonObjectFromStr, conf, KB, PLACE, VulType, POST_HINT, PluginBase, Type
+from urllib.parse import unquote
+from api import generateResponse, conf, KB, VulType, PluginBase, Type, Threads
 from lib.core.settings import DEFAULT_GET_POST_DELIMITER, DEFAULT_COOKIE_DELIMITER
 
 
@@ -32,16 +29,16 @@ class Z0SCAN(PluginBase):
         default_extension = ".jpg"
         payloads.append("../../../../../../../../../../../etc/passwd%00")
         payloads.append("/etc/passwd")
-        if "LINUX" in self.fingerprints.os or"DARWIN" in self.fingerprints.os:
+        if not self.fingerprints.os.get("LINUX", False) is False or not self.fingerprints.os.get("DARWIN", False) is False:
             payloads.append("../../../../../../../../../../etc/passwd{}".format(unquote("%00")))
             payloads.append("../../../../../../../../../../etc/passwd{}".format(unquote("%00")) + default_extension)
-        if "WINDOWS" in self.fingerprints.os:
+        if not self.fingerprints.os.get("WINDOWS", False) is False:
             payloads.append("../../../../../../../../../../windows/win.ini")
             payloads.append("C:\\boot.ini")
             # if origin:
             #     payloads.append(dirname + "/../../../../../../../../../../windows/win.ini")
             payloads.append("C:\\WINDOWS\\system32\\drivers\\etc\\hosts")
-        if "JAVA" in self.fingerprints.programing:
+        if not self.fingerprints.programing.get("JAVA", False) is False:
             payloads.append("/WEB-INF/web.xml")
             payloads.append("../../WEB-INF/web.xml")
         return payloads
@@ -71,22 +68,8 @@ class Z0SCAN(PluginBase):
             r'\[boot loader\][^\r\n<>]*[\r\n]'
         ]
         payloads = self.generate_payloads()
-        with ThreadPoolExecutor(max_workers=None) as executor:
-            futures = [
-                executor.submit(self.process, _, payloads, plainArray, regexArray) for _ in iterdatas
-            ]
-            try:
-                for future in as_completed(futures):
-                    try:
-                        future.result()
-                    except Exception as task_e:
-                        logger.error(f"Task failed: {task_e}", origin=self.name)
-                        raise
-            except KeyboardInterrupt:
-                executor.shutdown(wait=False)
-            except Exception as e:
-                logger.error(f"Unexpected error: {e}", origin=self.name)
-                executor.shutdown(wait=False)
+        z0thread = Threads(name="trave-path")
+        z0thread.submit(self.process, iterdatas, payloads, plainArray, regexArray)
                 
     def process(self, _, payloads, plainArray, regexArray):
         k, v, position = _
