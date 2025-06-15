@@ -28,10 +28,10 @@ class Z0SCAN(PluginBase):
             success = True
         if not success:
             patterns = [
-                "<meta[^>]*?url[\s]*?=[\s'\"]*?([^>]*?)['\"]?>",
-                "href[\s]*?=[\s]*?['\"](.*?)['\"]",
-                "window.open\(['\"](.*?)['\"]\)", 
-                "window.navigate\(['\"](.*?)['\"]\)"
+                r"<meta[^>]*?url[\s]*?=[\s'\"]*?([^>]*?)['\"]?>",
+                r"href[\s]*?=[\s]*?['\"](.*?)['\"]",
+                r"window.open\(['\"](.*?)['\"]\)", 
+                r"window.navigate\(['\"](.*?)['\"]\)"
             ]
             for pattern in patterns:
                 response_body = r.read().decode('utf-8', errors='ignore')
@@ -57,7 +57,7 @@ class Z0SCAN(PluginBase):
                         response = ssock.recv(8192)
             else:
                 with socket.create_connection((self.requests.hostname, self.requests.port)) as sock:
-                    sock.sendall(request_data)
+                    sock.sendall(request_data.encode('utf-8')) 
                     response = sock.recv(8192)        
             return self.parse_response(response)
         except Exception as e:

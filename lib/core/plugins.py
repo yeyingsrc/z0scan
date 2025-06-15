@@ -122,6 +122,7 @@ class PluginBase(object):
             elif self.requests.post_hint == POST_HINT.JSON_LIKE:
                 # 有点复杂了，后面再处理
                 pass
+            '''
             elif self.requests.post_hint == POST_HINT.MULTIPART:
                 # 从原始数据解析multipart边界
                 content_type = self.requests.headers.get('Content-Type', '')
@@ -136,6 +137,7 @@ class PluginBase(object):
                             # 这里简单处理下，有时间再研究着改一下
                             value_part = part.split('\r\n\r\n', 1)[1].rsplit('\r\n', 1)[0]
                             iterdatas.append([name, value_part, PLACE.MULTIPART_DATA])
+            '''
         if conf.scan_cookie and self.requests.cookies:
             for k, v in self.requests.cookies.items():
                 iterdatas.append([k, v, PLACE.COOKIE])

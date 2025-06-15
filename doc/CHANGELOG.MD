@@ -197,3 +197,11 @@
 4. 独立插件内置线程为模块（移除了future依赖项）
 
 ### 0.0.9.9 发布
+
+**2025.6.5**
+1. 修复SyntaxWarning问题
+2. 修复other-hosti中的Bug并为xpathi-error增添报错匹配规则
+3. 新增插件
+* PerServer/other-clickjacking 点击劫持
+
+### 0.1.0.1 发布

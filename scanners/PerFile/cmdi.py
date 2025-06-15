@@ -63,7 +63,6 @@ class Z0SCAN(PluginBase):
         for _payload, rules in payloads.items():
             payload = self.insertPayload({
                 "key": k, 
-                "value": v, 
                 "payload": _payload, 
                 "position": position, 
                 })

@@ -21,7 +21,7 @@ class Z0SCAN(PluginBase):
                 result.main({
                     "type": Type.REQUEST, 
                     "url": self.requests.url, 
-                    "vultype": VulType.SENSITIVE
+                    "vultype": VulType.OTHER
                     })
                 result.step("Request1", {
                     "request": r.reqinfo, 

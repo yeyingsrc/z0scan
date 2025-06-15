@@ -44,13 +44,13 @@ class Z0SCAN(PluginBase):
             basename + "::DATA"
         ]
         code_patterns = [
-            b"(\<%[\s\S]*Response\.Write[\s\S]*%\>)",  # ASP
-            b"(\<\?php[\x20-\x80\x0d\x0a\x09]+)",      # PHP
-            b"(^#\!\\\/[\s\S]*\\\/perl)",              # Perl
-            b"(^#\!\/[\s\S]*?\/python)",               # Python
-            b"(^#\!\/usr\/bin\/env\spython)",          # Python
-            b"(^#\!\/[\s\S]*?\/perl)",                 # Perl
-            b"using\sSystem[\s\S]*?class\s[\s\S]*?\s?{[\s\S]*}"  # .NET
+            br"(\<%[\s\S]*Response\.Write[\s\S]*%\>)",  # ASP
+            br"(\<\?php[\x20-\x80\x0d\x0a\x09]+)",      # PHP
+            br"(^#\!\\\/[\s\S]*\\\/perl)",              # Perl
+            br"(^#\!\/[\s\S]*?\/python)",               # Python
+            br"(^#\!\/usr\/bin\/env\spython)",          # Python
+            br"(^#\!\/[\s\S]*?\/perl)",                 # Perl
+            br"using\sSystem[\s\S]*?class\s[\s\S]*?\s?{[\s\S]*}"  # .NET
         ]
         for path in test_paths:
             full_path = os.path.join(dirname, path)

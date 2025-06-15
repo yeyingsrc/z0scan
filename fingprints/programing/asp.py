@@ -7,7 +7,7 @@ def _prepare_pattern(pattern):
     Strip out key:value pairs from the pattern and compile the regular
     expression.
     """
-    regex, _, rest = pattern.partition('\;')
+    regex, _, rest = pattern.partition(r'\;')
     try:
         return compile(regex, I)
     except error as e:
