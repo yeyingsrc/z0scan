@@ -335,7 +335,8 @@ class PluginBase(object):
         '''
         r = False
         if position == PLACE.PARAM:
-            r = requests.get(self.requests.url, params=payload, data=self.requests.post_data, headers=self.requests.headers, allow_redirects=allow_redirects)
+            url, payload = self.merged_params_requests(self.requests.url, payload)
+            r = requests.get(url, params=payload, data=self.requests.post_data, headers=self.requests.headers, allow_redirects=allow_redirects)
         elif position == PLACE.NORMAL_DATA:
             r = requests.post(self.requests.url, params=self.requests.params, data=payload, headers=self.requests.headers, allow_redirects=allow_redirects)
         elif position == PLACE.JSON_DATA:
@@ -356,6 +357,23 @@ class PluginBase(object):
                 r = requests.post(payload, params=self.requests.params, data=self.requests.post_data, headers=self.requests.headers, allow_redirects=allow_redirects)
         # sess.close()
         return r
+    
+    def merged_params_requests(self, url, payload):
+        # 合并URL中的查询参数与payload参数，避免重复
+        # (原因是实战过程中发现部分站点在遇到参数重复时会非正常响应)
+        url_parts = urlsplit(url)
+        original_query = parse_qs(url_parts.query)
+        payload_query = {}
+        for key, value in payload.items():
+            if isinstance(value, list):
+                payload_query[key] = value
+            else:
+                payload_query[key] = [value]
+        merged_query = original_query.copy()
+        merged_query.update(payload_query)
+        new_url_parts = url_parts._replace(query=None)
+        new_url = urlunsplit(new_url_parts)
+        return new_url, merged_query
     
     def execute(self, request: FakeReq, response: FakeResp):
         self.requests = request

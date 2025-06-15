@@ -5,7 +5,7 @@
 from lib.core.log import colors
 
 # z0scan version <year><month><day><type>
-VERSION = '0.1.0.1'
+VERSION = '0.1.0.2'
 TYPE = " -dev- " # 'stable'
 SITE = 'https://github.com/JiuZero/z0scan'
 DEFAULT_USER_AGENT = "z0scan/#v%s (%s)" % (VERSION, SITE)
